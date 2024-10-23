@@ -1,0 +1,270 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+  version     2.0;
+  format      ascii;
+  class       dictionary;
+  object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+tau #eval{ 0.75};
+
+#include "../parameters"
+
+application     buoyantPimpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         228.4263959;
+
+deltaT          1e-8;
+
+writeControl    adjustable;
+
+writeInterval   7.614213298;
+// writeInterval   1e-8;
+
+purgeWrite      10;
+
+writeFormat     ascii;
+
+writePrecision  10;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   10;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+
+maxDeltaT       3600;
+
+OptimisationSwitches
+{
+  //- Parallel IO file handler
+  //  uncollated (default), collated or masterUncollated
+  // fileHandler collated; // Error when reading binary files in collated format, needs fixing!
+}
+
+functions
+{
+  // Check conservation of mass and energy
+  conservation
+  {
+    type            volFieldValue;
+    libs            (fieldFunctionObjects);
+    operation       volIntegrate;
+    startTime       50;
+    enabled         true;
+    log             true;
+    writeControl    writeTime;
+    writeInterval   1;
+    writeFields     true;
+    executeControl  timeStep;
+    executeInterval 1;
+    fields
+    (
+      rho
+      h
+    );
+  }
+
+  wallHeatFlux
+  {
+    type            wallHeatFlux;
+    libs            (fieldFunctionObjects);
+    // writeToFile     false;
+    writePrecision  10;
+    executeControl timeStep;
+    executeInterval 1;
+    writeControl writeTime;
+    writeInterval 1;
+  }
+
+  wallShearStress
+  {
+    type            wallShearStress;
+    libs            (fieldFunctionObjects);
+    // writeToFile     false;
+    writePrecision  10;
+    executeControl timeStep;
+    executeInterval 1;
+    writeControl writeTime;
+    writeInterval 1;
+  }
+
+  linesample
+  {
+    type sets;
+    libs (sampling);
+    writeControl writeTime;
+    writeInterval 1;
+    interpolationScheme cellPointWallModified;
+    setFormat csv;
+    sets
+      (
+      vertical
+      {
+        type face;
+        axis z;
+        start (#eval{ 0.5*$L_x} #eval{0.5*$L_y} 0);
+        end (#eval{ 0.5*$L_x } #eval{ 0.5*$L_y} $L_z);
+      }
+      horizontal
+      {
+        type face;
+        axis x;
+        start (0 #eval{0.5*$L_y} #eval{0.5*$L_z});
+        end ($L_x #eval{0.5*$L_y} #eval{0.5*$L_z});
+      }
+      );
+    fields (T p U rho thermo:mu TMean UMean rhoMean);
+  }
+
+  wallsample
+  {
+    $linesample;
+    sets
+    (
+      leftwall
+      {
+        type face;
+        axis z;
+        start (0 #eval {0.5*$L_y} 0);
+        end (0 #eval {0.5*$L_y}  $L_z);
+      }
+      rightwall
+      {
+        type face;
+        axis z;
+        start ($L_x #eval {0.5*$L_y} 0);
+        end ($L_x #eval {0.5*$L_y} $L_z);
+      }
+    );
+    fields (rho wallHeatFlux wallShearStress rhoMean wallHeatFluxMean wallShearStressMean);
+
+  }
+
+  // Functions for run time control. Apparently can't use patchAverage as criterion,
+  // so need to create another function object:
+  solverInfo
+  {
+    type solverInfo;
+    libs
+      (
+      "libutilityFunctionObjects.so"
+      );
+    fields
+      (
+      ".*"
+      );
+    writeResidualFields no;
+    writeFields no;
+    writePrecision 8;
+    writeToFile yes;
+    useUserTime yes;
+    enabled yes;
+    log yes;
+    executeControl timeStep;
+    executeInterval 1;
+    writeControl timeStep;
+    writeInterval 1;
+  }
+  // writeRegObj
+  // {
+  //   type writeObjects;
+  //   libs ("utilityFunctionObjects");
+  //   objects (rho nu);
+  //   writeControl writeTime;
+  //   writeOption anyWrite;
+  // }
+
+  yPlus  // The name of the function object, can be anything you like
+  {
+    type            yPlus;         // Specifies that this function object calculates yPlus
+    libs            ("libfieldFunctionObjects.so");  // The library to load
+    writeControl    writeTime;     // When to write the yPlus data, e.g., every time step ('timeStep') or based on the write interval ('writeTime')
+    log             true;          // Output yPlus values to the standard output (log)
+  }
+  fieldAverage1
+  {
+      type                    fieldAverage;
+      libs ( "libfieldFunctionObjects.so" );
+      enabled               true;
+      writeControl       writeTime;
+      // timeStart             76.14213198;
+      timeStart             #eval{100*$tau};
+      // timeEnd               228.4263959;
+      timeEnd           $endTime;
+      resetOnOutput     false;
+          
+      fields
+      (
+          U
+          {
+              mean           on;
+              prime2Mean  on;
+              base           time;
+          }
+          T
+          {
+              mean           on;
+              prime2Mean  on;
+              base           time;
+          }
+          rho
+          {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          }
+          nut
+          {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          }
+          wallHeatFlux
+          {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          }
+          wallShearStress
+          {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          }
+          k
+          {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          }
+          p
+         {
+              mean           on;
+              prime2Mean  off;
+              base           time;
+          } 
+      );
+  }
+}
+
+// ************************************************************************* //

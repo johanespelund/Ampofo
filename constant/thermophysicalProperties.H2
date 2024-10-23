@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+  version     2.0;
+  format      ascii;
+  class       dictionary;
+  object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+  type            heRhoThermo;
+  mixture         pureMixture;
+  transport       polynomial;
+  thermo          hPolynomial;
+  equationOfState PengRobinsonGas;
+  specie          specie;
+  energy          sensibleEnthalpy;
+}
+
+#include "../parameters"
+
+NIST_Cp (  9.0286e+04 -1.2194e+04  7.8238e+02 -2.6708e+01  5.0922e-01 -5.1312e-03  2.1332e-05 0 );
+NIST_Viscosity ( -7.7947e-07  1.2387e-07 -2.3950e-09  3.3130e-11 -1.8585e-13 0 0 0 );
+NIST_ThermalConductivity (  1.5457e-03  8.1318e-04 -1.7732e-06 0 0 0 0 0 );
+Tc 33.145;
+Pc 1296400.0;
+Vc -0.219;
+omega 0.064482;
+M 2.0158799999999997;
+
+mixture
+{
+  specie
+  {
+    molWeight $M;
+  }
+  thermodynamics
+  {
+    // Cp $Cp;
+    // CpCoeffs<8> ( 1122.2  -1e-8 0  0 0  0 0  0 );
+    // CpCoeffs<8> ( $Cp  0 0  0 0  0 0  0 );
+    CpCoeffs<8> $NIST_Cp;
+    Hf 0;
+    // Hf $Hf;
+    // Tref 10;
+    // Href 0;
+    Sf 0;
+
+  }
+  transport
+  {
+    // mu $mu;
+    // Pr $Pr;
+    
+    // muCoeffs<8> (  $mu  0  0 0  0 0 0 0 );
+    // kappaCoeffs<8> ( 0.0075  0 0 0 0 0 0 0 );
+
+    muCoeffs<8> $NIST_Viscosity;
+    kappaCoeffs<8> $NIST_ThermalConductivity;
+  }
+  equationOfState
+  {
+    Tc $Tc;
+    Pc $Pc;
+    Vc $Vc;
+    omega $omega;
+  }
+  // dpdt true;
+}
+
+
+// ************************************************************************* //
