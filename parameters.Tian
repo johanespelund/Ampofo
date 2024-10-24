@@ -1,9 +1,9 @@
 L_x 0.75;
 L_y 1.5;
 L_z 0.75;
-x_wall 0.30e-3;
+x_wall 0.10e-3;
 x_bulk 0.005;
-r 1.15;
+r 1.10;
 fluid air;
 bSource False;
 turbulence true;
