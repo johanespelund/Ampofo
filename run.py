@@ -5,7 +5,8 @@ import shutil, glob
 import click
 
 from boundary_layer import (foam_grading, foam_grading_string,
-                            replace_blocks_content)
+                            replace_blocks_content,
+                            write_blocks_to_parameters)
 from FoamUtils import ThermophysicalProperties as tp
 from FoamUtils import read_parameters
 
@@ -113,12 +114,8 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
 
     v_string = f"hex (0 1 2 3 4 5 6 7)"
     n_string = f"({n} 1 {n}) // x_wall: {parameters['x_wall']} x_bulk: {parameters['x_bulk']} r: {parameters['r']}"
-    grading_string = f"(\n  {grading}\n  1\n  {grading}\n)"
-
-    if not dry_run:
-        replace_blocks_content("system/blockMeshDict", v_string, n_string, grading_string)
-    else:
-        print(f"Would replace blocks content in system/blockMeshDict with v_string, n_string, and grading_string")
+    grading_string = f"(\n\t\t\t\t\t{grading}\n\t\t\t\t\t1\n\t\t\t\t\t{grading}\n\t\t\t\t)"
+    write_blocks_to_parameters(parameters, v_string, n_string, grading_string, dry_run)
 
     parameters["nCells"] = int(n)**2
     parameters["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
