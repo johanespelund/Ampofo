@@ -194,7 +194,7 @@ def replace_blocks_content(file_path, v_string, n_string, grading_string):
 
 def write_blocks_to_parameters(parameters, v_string, n_string, grading_string, dry_run=False):
     if not dry_run:
-        parameters["blocks"] = f"""
+        parameters["_blocks"] = f"""
     (
         {v_string} {n_string}
         simpleGrading

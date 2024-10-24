@@ -30,6 +30,8 @@ vertices
   (0 $L_y $L_z) // 7
   );
 
+blocks $_blocks;
+
 boundary
   (
   wall_bottom
