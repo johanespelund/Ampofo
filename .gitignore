@@ -5,10 +5,12 @@ parameters
 *.svg
 *.pdf
 figures/
+dynamicCode
 
 ### OpenFOAM ###
 # Timestep directories
 0.*
+0
 [1-9]*
 
 # Fields that must get ignored
