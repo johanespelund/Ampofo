@@ -192,6 +192,17 @@ def replace_blocks_content(file_path, v_string, n_string, grading_string):
     with open(file_path, 'w') as file:
         file.write(updated_content)
 
+def write_blocks_to_parameters(parameters, v_string, n_string, grading_string, dry_run=False):
+    if not dry_run:
+        parameters["blocks"] = f"""
+    (
+        {v_string} {n_string}
+        simpleGrading
+        {grading_string}
+    );
+        """
+
+
 if __name__ == "__main__":
     # for L in [1, 0.32, 1]:
     #     x_wall = 1e-3
