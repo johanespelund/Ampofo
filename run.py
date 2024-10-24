@@ -26,8 +26,8 @@ def run_command(command, dry_run=False, shell=False):
 @click.option("--x-wall", default=0.3e-3, help="Wall cell size")
 @click.option("--x-bulk", default=0.01, help="Bulk cell size")
 @click.option("--n-processors", default=1, help="Number of processors")
-@click.option("--decomp-method", "-d", default="simple", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
-@click.option("--n-decomp", "-n", default="", help="Coeffs for simple and hierarchical decomposition")
+@click.option("--decomp-method", "-d", default="scotch", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
+@click.option("--n-decomp", "-n", default="(1 1 1)", help="Coeffs for simple and hierarchical decomposition")
 @click.option("--config-file", "-c", default="", help="Configuration file")
 @click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
 def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run):
@@ -62,7 +62,8 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
         shutil.rmtree("0", ignore_errors=True)
         shutil.rmtree("postProcessing", ignore_errors=True)
         run_command(["foamListTimes", "-rm"], dry_run)
-        run_command(["foamListTimes", "-rm", "-processor"], dry_run)
+        for processor in glob.glob("processor*"):
+            shutil.rmtree(processor, ignore_errors=True)
         
 
     parameters["T_right"] = 283.15
