@@ -7,7 +7,7 @@ parameters.dry-run
 *.pdf
 figures/
 dynamicCode
-__pycache__/
+**/__pycache__/
 
 ### OpenFOAM ###
 # Timestep directories
