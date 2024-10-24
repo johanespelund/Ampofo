@@ -76,8 +76,6 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
         print("Reading parameters from", config_file)
         parameters.update(read_parameters(config_file))
 
-    run_command(["cp", "constant/thermophysicalProperties.air", "constant/thermophysicalProperties"], dry_run)
-
     T0 = parameters["T_avg"]
     thermo = tp.ThermophysicalProperties("constant/thermophysicalProperties")
     cp = thermo.Cp(T0)
