@@ -31,7 +31,8 @@ def run_command(command, dry_run=False, shell=False):
 @click.option("--n-decomp", "-n", default="(1 1 1)", help="Coeffs for simple and hierarchical decomposition")
 @click.option("--config-file", "-c", default="", help="Configuration file")
 @click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
-def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run):
+@click.option("--yes-clean", "-y", is_flag=True, help="Skip confirmation and clean the system")
+def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
@@ -53,18 +54,21 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
         "nDecomp": n_decomp,
     }
 
+    a = False
     if dry_run:
         print("Dry-run mode enabled. No system changes will be made.")
-    else:
+    elif not yes_clean:
         a = input("This will overwrite the current system. Are you sure you want to continue? (y/n): ")
-        if a.lower() != "y":
-            print("Exiting")
-            return
+        a = a.lower() == "y"
+    if a or yes_clean:
         shutil.rmtree("0", ignore_errors=True)
         shutil.rmtree("postProcessing", ignore_errors=True)
         run_command(["foamListTimes", "-rm"], dry_run)
         for processor in glob.glob("processor*"):
             shutil.rmtree(processor, ignore_errors=True)
+    else:
+        print("Exiting without making any changes")
+        return
         
 
     parameters["T_right"] = 283.15
@@ -119,7 +123,6 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
     parameters["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     write_parameters(parameters, dry_run)
-    print(f"Would write parameters to file: {parameters}")
 
     run_command(["blockMesh >> log.blockMesh"], dry_run, shell=True)
 
