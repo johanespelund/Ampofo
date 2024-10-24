@@ -199,8 +199,7 @@ def write_blocks_to_parameters(parameters, v_string, n_string, grading_string, d
         {v_string} {n_string}
         simpleGrading
         {grading_string}
-    );
-        """
+    )"""
 
 
 if __name__ == "__main__":
