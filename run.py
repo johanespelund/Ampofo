@@ -26,12 +26,15 @@ def run_command(command, dry_run=False, shell=False):
 @click.option("--x-wall", default=0.3e-3, help="Wall cell size")
 @click.option("--x-bulk", default=0.01, help="Bulk cell size")
 @click.option("--n-processors", default=1, help="Number of processors")
-# @click.option("--decomp-method", "-d", default="scotch", allow_from_choices=["simple", "scotch", "hierarchical"], help="Decomposition method")
 @click.option("--decomp-method", "-d", default="simple", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
 @click.option("--n-decomp", "-n", default="", help="Coeffs for simple and hierarchical decomposition")
 @click.option("--config-file", "-c", default="", help="Configuration file")
 @click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
 def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run):
+    """
+    Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
+    doi: 10.1016/S0017-9310(03)00147-9
+    """
     parameters = {
         "L_x": 0.75,
         "L_y": 0.75,
