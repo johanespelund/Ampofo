@@ -98,7 +98,7 @@ method              $decompMethod;
 // weightField dsmcRhoNMean;
 
 // method          scotch;
-method          hierarchical;
+// method          hierarchical;
 // method          simple;
 // method          metis;
 // method          manual;
