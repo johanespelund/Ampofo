@@ -1,11 +1,13 @@
 cases
 log.*
 parameters
+parameters.dry-run
 *.png
 *.svg
 *.pdf
 figures/
 dynamicCode
+__pycache__/
 
 ### OpenFOAM ###
 # Timestep directories
