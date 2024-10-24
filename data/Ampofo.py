@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
+import pathlib
 
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
@@ -24,16 +26,19 @@ class Ampofo:
     T_top: np.ndarray = field(init=False, default=None)
     T_bottom: np.ndarray = field(init=False, default=None)
 
-    V_left: np.ndarray = field(init=False, default=None)
-    T_left: np.ndarray = field(init=False, default=None)
+    hor_mid: pd.DataFrame = field(init=False, default=None)
+
+    data_path = pathlib.Path("data/Ampofo")
+
 
     def __post_init__(self):
-        self.Nu_cold = np.genfromtxt("data/Ampofo/local_nusselt_distribution.csv")[:,[0,2]]
-        self.Nu_hot = np.genfromtxt("data/Ampofo/local_nusselt_distribution.csv")[:,[0,1]]
-        self.phi_bottom = np.genfromtxt("data/Ampofo/horizontal_wall_temp.csv")[:,[0,2]]
-        self.phi_top = np.genfromtxt("data/Ampofo/horizontal_wall_temp.csv")[:,[0,1]]
-        # self.V_left = np.genfromtxt("data/Ampofo/VelocityLeftWall.csv")
-        # self.T_left = np.genfromtxt("data/Ampofo/TemperatureLeftWall.csv")
+        self.npload = lambda filename: np.genfromtxt(pathlib.Path(self.data_path, filename))
+        self.pdload = lambda filename: pd.read_csv(pathlib.Path(self.data_path, filename), sep="\s+")
+        self.Nu_cold = self.npload("local_nusselt_distribution.csv")[:,[0,2]]
+        self.Nu_hot = self.npload("local_nusselt_distribution.csv")[:,[0,1]]
+        self.phi_bottom = self.npload("horizontal_wall_temp.csv")[:,[0,2]]
+        self.phi_top = self.npload("horizontal_wall_temp.csv")[:,[0,1]]
+        self.hor_mid = self.pdload("Y0.5.csv")
 
         self.T_top = self.phi_top.copy()
         self.T_bottom = self.phi_bottom.copy()

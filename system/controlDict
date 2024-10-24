@@ -114,7 +114,7 @@ functions
     libs (sampling);
     writeControl writeTime;
     writeInterval 1;
-    interpolationScheme cellPointWallModified;
+    interpolationScheme cellPoint;
     setFormat csv;
     sets
       (
@@ -133,12 +133,13 @@ functions
         end ($L_x #eval{0.5*$L_y} #eval{0.5*$L_z});
       }
       );
-    fields (T p U rho thermo:mu TMean UMean rhoMean);
+    fields (T p U rho thermo:mu TMean UMean rhoMean kMean nutMean);
   }
 
   wallsample
   {
     $linesample;
+    interpolationScheme cellPointWallModified;
     sets
     (
       leftwall
