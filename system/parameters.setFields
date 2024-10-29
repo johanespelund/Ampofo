@@ -1,44 +1,16 @@
 expression_top
- + 322.98
-- 1329.23* pos().x()
-+ 223365.91* pos().x()* pos().x()
-- 16204582.09* pos().x()* pos().x()* pos().x()
-+ 586113553.10* pos().x()* pos().x()* pos().x()* pos().x()
-- 11908953954.10* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 147880093779.44* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 1191042457807.15* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 6455411887201.68* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 23887943961003.05* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 59472230776220.66* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 92277506696714.11* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 62169858034953.17* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 58498232493730.81* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 156187006152270.38* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 57896490347836.05* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 198973046066484.12* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 352258971687970.00* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 271681566960038.72* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 107017587593039.12* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 17536080057458.61* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
+ + 321.8119
+- 111.8661*x
++ 591.1765*x*x
+- 1907.9947*x*x*x
++ 3218.2247*x*x*x*x
+- 2526.6046*x*x*x*x*x
++ 570.2755*x*x*x*x*x*x
 expression_bottom
- + 322.78
-- 1818.35* pos().x()
-+ 285130.15* pos().x()* pos().x()
-- 20134693.73* pos().x()* pos().x()* pos().x()
-+ 718044910.56* pos().x()* pos().x()* pos().x()* pos().x()
-- 14535473842.83* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 181259199852.50* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 1475264695275.39* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 8124741078901.33* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 30721733005373.09* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 78707136750340.61* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 127257288909219.28* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 94232560610366.36* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 71418738291416.27* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 225918943499114.41* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 106572886830860.77* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 277637745519511.12* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 547009430212085.62* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 453064061682314.38* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-- 191279886515313.03* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
-+ 33738249953758.20* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()* pos().x()
+ + 321.2651
+- 223.5313*x
++ 1144.5050*x*x
+- 3556.7103*x*x*x
++ 6103.7631*x*x*x*x
+- 5285.3738*x*x*x*x*x
++ 1739.4672*x*x*x*x*x*x
