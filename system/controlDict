@@ -25,17 +25,12 @@ startTime       0;
 
 stopAt          endTime;
 
-<<<<<<< HEAD
 endTime         #eval{300*$tau};
-=======
-endTime         225;
->>>>>>> be21faff8a6bde894819e340e6098f4bf3322a56
 
 deltaT          1e-8;
 
 writeControl    adjustable;
 
-<<<<<<< HEAD
 writeInterval   $tau;
 
 purgeWrite      9;
@@ -43,90 +38,23 @@ purgeWrite      9;
 writeFormat     binary;
 
 writePrecision  9;
-=======
-writeInterval   7.5;
-// writeInterval   1e-8;
-
-purgeWrite      10;
-
-writeFormat     ascii;
-
-writePrecision  10;
->>>>>>> be21faff8a6bde894819e340e6098f4bf3322a56
 
 writeCompression off;
 
 timeFormat      general;
 
-timePrecision   10;
+timePrecision   9;
 
-<<<<<<< HEAD
 runTimeModifiable false;
-=======
-runTimeModifiable true;
->>>>>>> be21faff8a6bde894819e340e6098f4bf3322a56
 
 adjustTimeStep  yes;
 
-maxCo           0.5;
+maxCo           0.25;
 
 maxDeltaT       3600;
 
-<<<<<<< HEAD
 functions
 {
-  // Check conservation of mass and energy
-  // conservation
-  // {
-  //   type            volFieldValue;
-  //   libs            (fieldFunctionObjects);
-  //   operation       volIntegrate;
-  //   startTime       50;
-  //   enabled         true;
-  //   log             true;
-  //   writeControl    writeTime;
-  //   writeInterval   1;
-  //   writeFields     true;
-  //   executeControl  timeStep;
-  //   executeInterval 1;
-  //   fields
-  //   (
-  //     rho
-  //     h
-  //   );
-  // }
-=======
-OptimisationSwitches
-{
-  //- Parallel IO file handler
-  //  uncollated (default), collated or masterUncollated
-  // fileHandler collated; // Error when reading binary files in collated format, needs fixing!
-}
-
-functions
-{
-  // Check conservation of mass and energy
-  conservation
-  {
-    type            volFieldValue;
-    libs            (fieldFunctionObjects);
-    operation       volIntegrate;
-    startTime       50;
-    enabled         true;
-    log             true;
-    writeControl    writeTime;
-    writeInterval   1;
-    writeFields     true;
-    executeControl  timeStep;
-    executeInterval 1;
-    fields
-    (
-      rho
-      h
-    );
-  }
->>>>>>> be21faff8a6bde894819e340e6098f4bf3322a56
-
   wallHeatFlux
   {
     type            wallHeatFlux;
@@ -252,7 +180,7 @@ functions
       enabled               true;
       writeControl       writeTime;
       // timeStart             76.14213198;
-      timeStart             #eval{100*$tau};
+      timeStart             #eval{150*$tau};
       // timeEnd               228.4263959;
       timeEnd           $endTime;
       resetOnOutput     false;
