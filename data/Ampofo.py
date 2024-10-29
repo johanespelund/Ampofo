@@ -136,7 +136,6 @@ class Ampofo:
             label="Top data",
             markerfacecolor="none",
         )
-        plt.plot(x_fit, T_top_fit, "C1--", label="Top quadratic fit")
 
         # Plot data points and fitted quadratic interpolation curve for T_bottom
         plt.plot(
@@ -146,7 +145,16 @@ class Ampofo:
             label="Bottom data",
             markerfacecolor="none",
         )
-        plt.plot(x_fit, T_bottom_fit, "C0-.", label="Bottom quadratic fit")
+        # plt.plot(x_fit, T_bottom_fit, "C0-.", label="Bottom quadratic fit")
+
+        poly_degree = 8
+        T_top_fit = self.polynomial_fit(self.T_top[:, 0], self.T_top[:, 1], poly_degree)
+        T_bottom_fit = self.polynomial_fit(
+            self.T_bottom[:, 0], self.T_bottom[:, 1], poly_degree
+        )
+        
+        plt.plot(x_fit, np.polyval(T_top_fit, x_fit), "C1-", label="Top polynomial fit")
+        plt.plot(x_fit, np.polyval(T_bottom_fit, x_fit), "C0-", label="Bottom polynomial fit")
 
         plt.xlabel("x [m]")
         plt.ylabel("T [K]")
@@ -156,7 +164,7 @@ class Ampofo:
         plt.show()
 
     def write_poly_expression(self):
-        poly_degree = 20
+        poly_degree = 6
         T_top_fit = self.polynomial_fit(self.T_top[:, 0], self.T_top[:, 1], poly_degree)
         T_bottom_fit = self.polynomial_fit(
             self.T_bottom[:, 0], self.T_bottom[:, 1], poly_degree
@@ -173,10 +181,10 @@ class Ampofo:
             bottom_sign = "+" if bottom_coef >= 0 else "-"
             # expression += f"{sign} {coef:.2f}" + i*"* pos().x()" + "\n"
             expression_top += (
-                f"{top_sign} {abs(top_coef):.2f}" + i * "* pos().x()" + "\n"
+                f"{top_sign} {abs(top_coef):.4f}" + i * "*x" + "\n"
             )
             expression_bottom += (
-                f"{bottom_sign} {abs(bottom_coef):.2f}" + i * "* pos().x()" + "\n"
+                f"{bottom_sign} {abs(bottom_coef):.4f}" + i * "*x" + "\n"
             )
 
         with open("system/parameters.setFields", "w") as f:

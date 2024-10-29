@@ -18,9 +18,8 @@ thermoType
 {
     type            heRhoThermo;
     mixture         pureMixture;
-    // transport       const;
-    transport       sutherland;
-    thermo          hConst;
+    transport       polynomial;
+    thermo          hPolynomial;
     equationOfState perfectGas;
     specie          specie;
     energy          sensibleEnthalpy;
@@ -28,26 +27,45 @@ thermoType
 
 mixture
 {
-    specie
-    {
-        nMoles          1;
-        molWeight       28.96;
-    }
-    thermodynamics
-    {
-        gamma           1.4;
-        R               287.05;
-        Cp              1004.675;
-        Hf              2.544e+06;
-    }
-    transport
-    {
-        mu              1.8e-05;
-        Pr              0.71;
-        // sutherland
-       As               1.4792e-06;
-       Ts               116;
-    }
+  specie
+  {
+    nMoles          1;
+    molWeight       28.96;
+  }
+  thermodynamics
+  {
+    gamma           1.4;
+    R               287.05;
+    Cp              1004.675;
+    CpCoeffs<8>     (1004.675 0 0 0 0 0 0 0);
+    Sf              0;
+    Hf              2.544e+06;
+  }
+  transport
+  {
+    mu              1.8e-05;
+    Pr              0.71;
+    kappaCoeffs<8> (
+                -1.9255e-03
+                1.4063e-04
+                -2.1543e-07
+                3.3231e-10
+                -3.7459e-13
+                2.7836e-16
+                -1.2074e-19
+                2.3047e-23
+      );
+    muCoeffs<8> (
+                -1.3610e-06
+                9.9401e-08
+                -1.5227e-10
+                2.3488e-13
+                -2.6477e-16
+                1.9675e-19
+                -8.5342e-23
+                1.6290e-26
+      );
+  }
 }
 
 
