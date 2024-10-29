@@ -21,12 +21,18 @@ simulationType          $simulationType;
 
 RAS
 {
-    RASModel            $RASModel;
+  RASModel            $RASModel;
 
-    turbulence          $turbulence;
+  turbulence          $turbulence;
 
-    printCoeffs         off;
+  printCoeffs         on;
+
+  buoyantKEpsilonCoeffs
+  {
+    Cg 1.176470588; // Corresponds to Prt = 0.85 (Cg = 1/Prt)
+  }
 }
+
 
 
 // ************************************************************************* //
