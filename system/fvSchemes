@@ -16,7 +16,8 @@ FoamFile
 
 ddtSchemes
 {
-    default         Euler;
+    // default         Euler;
+    default         backward;
 }
 
 gradSchemes
@@ -36,6 +37,7 @@ divSchemes
     div(meshPhi,p)  Gauss linear;
     // turbulence      Gauss upwind;
     turbulence      Gauss limitedLinear 1;
+    // turbulence      Gauss linearUpwind grad(k);
     div(phi,k)      $turbulence;
     div(phi,omega)  $turbulence;
     div(phi,epsilon) $turbulence;
