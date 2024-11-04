@@ -29,7 +29,6 @@ boundaryField
     "wall.*"
     {
         type            epsilonWallFunction;
-        lowReCorrection true;
         value           $internalField;
     }
     "proc.*"
