@@ -45,35 +45,40 @@ for postProcessing in folders:
     pp_color = f"C{i}"
     i += 1
 
-    vertical = fu.load_sampling_set(f"{postProcessing}/linesample", time, "vertical")
+    vertical = fu.load_sampling_set(f"{postProcessing}/linesample", time, "vertical", org=True)
     horizontal = fu.load_sampling_set(
-        f"{postProcessing}/linesample", time, "horizontal"
-    )
-    right = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "rightwall")
-    left = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "leftwall")
+        f"{postProcessing}/linesample", time, "horizontal", org=True)
+    # right = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "rightwall", org=True)
+    # left = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "leftwall", org=True)
+
+    right = fu.load(f"{postProcessing}/right_wall/{time}/line.xy")
+    left = fu.load(f"{postProcessing}/left_wall/{time}/line.xy")
+    print(left)
+    # q_right = right[:,1]
+    # q_left = left[:,1]
 
     z = vertical["z"]  # vertical[:, 0]
     z_right = right["z"]
     z_left = left["z"]
     T_vert = vertical["T"]  # [:, iT]
-    Ux_vert = vertical["UMeanx"]  # [:, iUx]
-    Uz_vert = vertical["UMeanx"]  #:, iUz]
+    Ux_vert = vertical["Ux"]  # [:, iUx]
+    Uz_vert = vertical["Ux"]  #:, iUz]
 
-    q_right = right["wallHeatFluxMean"]  # [:, 1]
-    q_left = left["wallHeatFluxMean"]  # [:, 1
+    q_right = right["wallHeatFlux"]  # [:, 1]
+    q_left = left["wallHeatFlux"]  # [:, 1
 
     Nu_left = wp.Nusselt(q_left, Th - Tc, L, thermo.kappa(Th))
     Nu_right = wp.Nusselt(q_right, Th - Tc, L, thermo.kappa(Tc))
 
-    T_hor = horizontal["TMean"]  # [:, 1]
-    Uz_hor = horizontal["UMeanz"]  # [:, iUz]
-    # k_hor = horizontal["kMean"]  # [:, 1]
+    T_hor = horizontal["T"]  # [:, 1]
+    Uz_hor = horizontal["Uz"]  # [:, iUz]
+    # k_hor = horizontal["k"]  # [:, 1]
     x = horizontal["x"]  # [:, 0]
 
-    Uz_left = horizontal["UMeanz"]  # [:, iUz]
+    Uz_left = horizontal["Uz"]  # [:, iUz]
     Uz_right = np.flip(Uz_left)
 
-    rho_data = horizontal["rhoMean"]
+    rho_data = horizontal["rho"]
 
     n_left = horizontal["x"]
     n_right = L - np.flip(n_left)
@@ -100,7 +105,8 @@ for postProcessing in folders:
 
     Nu_left = q_left * L / ((Th - Tc) * thermo.kappa(Th))
     ax[2].plot(
-        Nu_left,
+        # Nu_left,
+        q_left,
         z_left / L,
         label="Left wall",
         color=pp_color,
@@ -113,19 +119,19 @@ for postProcessing in folders:
         color=pp_color,
     )
 
-    ax[3].plot(x / L, Uz_hor / V0, label=label, marker="x", markevery=2, color=pp_color)
+    ax[3].plot(x / L, Uz_hor / V0, label=label, marker="x", markevery=1, color=pp_color)
 
     ax[4].plot(
         x / L,
         (T_hor - Tc) / DeltaT,
         label=label,
         marker="x",
-        markevery=2,
+        markevery=1,
         color=pp_color,
     )
 
     # ax[5].plot(
-    #     x / L, k_hor / V0**2, label=label, marker="x", markevery=2, color=pp_color
+    #     x / L, k_hor / V0**2, label=label, marker="x", markevery=1, color=pp_color
     # )
 
 ax[0].set_ylabel("z/L [-]")
