@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  11
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvModels;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+kSource
+{
+    type            coded;
+    select          all;
+    field           k;
+    codeInclude
+    #{
+        #include "fvcGrad.H"
+        #include "uniformDimensionedFields.H"
+    #};
+    codeAddRhoSup
+    #{
+        Pout<< "**codeAddRhoSup**" << endl;
+        scalarField& kSource = eqn.source();
+        const auto& alphat = mesh().lookupObjectRef<volScalarField>("alphat");
+        const auto& nut = mesh().lookupObjectRef<volScalarField>("nut");
+        const scalar Cg = 1/0.85;
+        const auto& g = mesh().lookupObjectRef<uniformDimensionedVectorField>("g");
+        const auto Gk = alphat*fvc::grad(rho) & g;
+        kSource += Gk;
+    #};
+}
+
+epsilonSource
+{
+    type            coded;
+    select          all;
+    field           k;
+    codeInclude
+    #{
+        #include "fvcGrad.H"
+        #include "uniformDimensionedFields.H"
+    #};
+    codeAddRhoSup
+    #{
+        Pout<< "**codeAddRhoSup**" << endl;
+        scalarField& epsSource = eqn.source();
+        const auto& alphat = mesh().lookupObjectRef<volScalarField>("alphat");
+        const auto& nut = mesh().lookupObjectRef<volScalarField>("nut");
+        const auto& k = mesh().lookupObjectRef<volScalarField>("k");
+        const scalar Cg = 1/0.85;
+        const scalar C1 = 1.44;
+        const scalar C2 = 1.92;
+        const auto& g = mesh().lookupObjectRef<uniformDimensionedVectorField>("g");
+        const auto Gk = alphat*fvc::grad(rho) & g;
+        Pout<< "Gk: " << Gk << endl;
+
+        const auto& U = mesh().lookupObjectRef<volVectorField>("U");
+        vector gHat(0, 0, -1);
+        volScalarField v = (gHat & U) + dimensionedScalar(dimVelocity, SMALL);
+        const auto u =   mag(U - gHat*v) + dimensionedScalar(dimVelocity, SMALL);
+        // Info << "gMin(u): " << min(u.value()) << endl;
+        const auto GkEps = C1*tanh(mag(u/v))*Gk;
+        // Info << "GkEps: " << GkEps << endl;
+        // epsSource -= GkEps;
+    #};
+}
+
+//************************************************************************* //
