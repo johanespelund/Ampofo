@@ -46,6 +46,7 @@ divSchemes
     div(phi,gammaInt) $turbulence;
     div(phi,f)  $turbulence;
     div(phi,phit)  $turbulence;
+    div(phi,v2)  $turbulence;
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 }
 
