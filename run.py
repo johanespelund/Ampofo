@@ -21,6 +21,7 @@ def run_command(command, dry_run=False, shell=False):
 
 @click.command()
 @click.option("--turbulence", "-t", is_flag=True, help="Include turbulence model")
+@click.option('--highRe', is_flag=True, help="Run simulation with high-Re turbulent boundary conditions")
 @click.option("--model", "-m", default="kOmegaSST", help="Turbulence model")
 @click.option("--buoyancy-source", "-b", is_flag=True, help="Include buoyancy source term")
 @click.option("--x-wall", default=0.1e-3, help="Wall cell size")
@@ -31,7 +32,7 @@ def run_command(command, dry_run=False, shell=False):
 @click.option("--config-file", "-c", default="", help="Configuration file")
 @click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
 @click.option("--yes-clean", "-y", is_flag=True, help="Skip confirmation and clean the system")
-def main(turbulence, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
+def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
@@ -43,6 +44,7 @@ def main(turbulence, model, buoyancy_source, x_wall, x_bulk, n_processors, decom
         "x_wall": x_wall,
         "x_bulk": x_bulk,
         "r": 1.05,
+        "highRe": highre,
         "bSource": buoyancy_source,
         "turbulence": turbulence,
         "RASModel":model,
@@ -77,6 +79,8 @@ def main(turbulence, model, buoyancy_source, x_wall, x_bulk, n_processors, decom
     if config_file:
         print("Reading parameters from", config_file)
         parameters.update(read_parameters(config_file))
+
+    run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
 
     T0 = parameters["T_avg"]
     thermo = tp.ThermophysicalProperties("constant/thermophysicalProperties")
@@ -132,7 +136,17 @@ def main(turbulence, model, buoyancy_source, x_wall, x_bulk, n_processors, decom
     run_command(["rm", "-rf", "postProcessing"], dry_run)
     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
 
-    run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+    if parameters["highRe"]:
+        run_command("cp highReBC/* 0/", dry_run, shell=True)
+        print("Using high-Re turbulent boundary conditions")
+    else:
+        run_command("cp lowReBC/* 0/", dry_run, shell=True)
+        print("Using low-Re turbulent boundary conditions")
+
+    if parameters["n_processors"] > 1:
+        run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+
+    run_command(["cp", "system/controlDict.run", "system/controlDict"], dry_run)
 
     print("Ready to run the simulation")
 

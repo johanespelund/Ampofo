@@ -69,13 +69,14 @@ solvers
 
 PIMPLE
 {
-    momentumPredictor   no;
+    momentumPredictor   yes;
     nOuterCorrectors    1;
     nCorrectors         3;
     nNonOrthogonalCorrectors 1;
     pRefCell            0;
     pRefValue           1e5;
     ddtCorr             true;
+    turbOnFinalIterOnly false;
 
     // residualControl
     // {
@@ -93,19 +94,21 @@ PIMPLE
 
 }
 
-// relaxationFactors
-// {
-//   fields
-//   {
-//     p_rgh 0.7;
-//     rho   0.7;
-//     "(p_rgh|rho)Final" 1;
-//     // ".*Final" 1;
-//   }
-//   equations
-//   {
-//     U   0.3;
-//     h   0.2;
-//     "(h|e|U|T|k|epsilon)Final" 1;
-//   }
-// }
+relaxationFactors
+{
+  fields
+  {
+    p_rgh 0.3;
+    // rho   0.7;
+    "(p_rgh|rho)Final" 1;
+    // ".*Final" 1;
+  }
+  equations
+  {
+    U   0.7;
+    h   0.2;
+    k   0.1;
+    epsilon 0.1;
+    "(h|e|U|T|k|epsilon)Final" 1;
+  }
+}

@@ -17,14 +17,15 @@ FoamFile
 ddtSchemes
 {
     // default         Euler;
-    default         backward;
+    default         CrankNicolson 0.5;
+    // default         backward;
 }
 
 gradSchemes
 {
   default  Gauss linear;
   // grad(h)  cellLimited Gauss linear 1;
-  // grad(U) cellMDLimited Gauss linear 0.333;
+  // grad(k) cellMDLimited Gauss linear 1;
   // grad(h) cellMDLimited Gauss linear 0.5;
 }
 
