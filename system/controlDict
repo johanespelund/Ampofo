@@ -67,6 +67,16 @@ functions
     writeControl writeTime;
     writeInterval 1;
   }
+  Q_left
+  {
+    #includeEtc "caseDicts/postProcessing/surfaceFieldValue/patchValue.cfg"
+    patch wall_left;
+    fields (wallHeatFlux);
+    operation areaIntegrate;
+  }
+  Q_right { $Q_left; patch wall_right; }
+  Q_top { $Q_left; patch wall_top; }
+  Q_bottom { $Q_left; patch wall_bottom; }
 
   linesample
   {
