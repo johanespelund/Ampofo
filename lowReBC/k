@@ -24,29 +24,10 @@ boundaryField
         {
             type        empty;
     }
-    bottom
-    {
-        type            kLowReWallFunction;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            zeroGradient;
-    }
-
     "wall.*"
     {
         type            kLowReWallFunction;
         value           $internalField;
-    }
-    pipe
-    {
-    $wall;
-  }
-    "wedge.*"
-    {
-        type wedge;
     }
     "proc.*"
     {

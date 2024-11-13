@@ -24,30 +24,11 @@ boundaryField
     {
         type        empty;
     }
-    bottom
-    {
-        type            nutLowReWallFunction;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            calculated;
-        value           $internalField;
-    }
 
     "wall.*"
     {
-        type            nutLowReWallFunction;
+        type            nutUWallFunction;
         value           $internalField;
-    }
-    pipe
-    {
-        $wall;
-      }
-    "wedge.*"
-    {
-        type wedge;
     }
     "proc.*"
     {
