@@ -34,7 +34,7 @@ deltaT          1e-4;
 
 writeControl    adjustableRunTime;
 
-writeInterval   20;
+writeInterval   1;
 
 purgeWrite      9;
 
@@ -48,7 +48,7 @@ timeFormat      general;
 
 timePrecision   9;
 
-runTimeModifiable false;
+runTimeModifiable true;
 
 adjustTimeStep  yes;
 
@@ -84,7 +84,7 @@ functions
     libs (sampling);
     writeControl writeTime;
     writeInterval 1;
-    interpolationScheme cellPoint;
+    interpolationScheme cellPointFace;
     setFormat csv;
     sets
       (
@@ -92,15 +92,15 @@ functions
       {
         type lineFace;
         axis z;
-        start (#calc " 0.5*$L_x" #calc "0.5*$L_y" 0);
-        end (#calc " 0.5*$L_x " #calc " 0.5*$L_y" $L_z);
+        start (#calc " 0.5*$L_x" #calc "0.5*$L_y" -1e3);
+        end (#calc " 0.5*$L_x " #calc " 0.5*$L_y" 1e3);
       }
       horizontal
       {
         type lineFace;
         axis x;
-        start (0 #calc "0.5*$L_y" #calc "0.5*$L_z");
-        end ($L_x #calc "0.5*$L_y" #calc "0.5*$L_z");
+        start (-1e3 #calc "0.5*$L_y" #calc "0.5*$L_z");
+        end (1e3 #calc "0.5*$L_y" #calc "0.5*$L_z");
       }
       );
     fields (T p U rho thermo:mu TMean UMean rhoMean kMean nutMean);
@@ -108,8 +108,8 @@ functions
 
   left_wall
   {
-    start (0 #calc "0.5*$L_y" 0);
-    end (0 #calc "0.5*$L_y"  $L_z);
+    start (0 #calc "0.5*$L_y" -1e3);
+    end (0 #calc "0.5*$L_y"  1e3);
     fields (wallHeatFlux wallHeatFluxMean);
     axis z;
     setFormat csv;
@@ -121,8 +121,8 @@ functions
   right_wall
   {
     $left_wall
-    start ($L_x #calc "0.5*$L_y" 0);
-    end ($L_x #calc "0.5*$L_y"  $L_z);
+    start ($L_x #calc "0.5*$L_y" -1e3);
+    end ($L_x #calc "0.5*$L_y"  1e3);
   }
 
   yPlus  // The name of the function object, can be anything you like
