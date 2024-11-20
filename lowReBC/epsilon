@@ -29,7 +29,7 @@ boundaryField
     bottom
     {
         type            epsilonWallFunction;
-        lowReCorrection on;
+        lowReCorrection  yes;
         value           $internalField;
     }
 
@@ -41,6 +41,7 @@ boundaryField
     "wall.*"
     {
         type            epsilonWallFunction;
+        lowReCorrection  yes;
         value           $internalField;
     }
     pipe
