@@ -21,18 +21,18 @@ def run_command(command, dry_run=False, shell=False):
 
 @click.command()
 @click.option("--turbulence", "-t", is_flag=True, help="Include turbulence model")
-@click.option("--map-case", "-m", default="", help="Map fields from another case to initialize")
+@click.option('--highRe', is_flag=True, help="Run simulation with high-Re turbulent boundary conditions")
 @click.option("--model", "-m", default="kOmegaSST", help="Turbulence model")
-@click.option("--buoyancy-source", "-b", default="false", help="Include buoyancy source term")
+@click.option("--buoyancy-source", "-b", is_flag=True, help="Include buoyancy source term")
 @click.option("--x-wall", default=0.1e-3, help="Wall cell size")
 @click.option("--x-bulk", default=0.005, help="Bulk cell size")
-@click.option("--n-processors", default=1, help="Number of processors")
+@click.option("--n-processors", "-np", default=1, help="Number of processors")
 @click.option("--decomp-method", "-d", default="scotch", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
 @click.option("--n-decomp", "-n", default="(1 1 1)", help="Coeffs for simple and hierarchical decomposition")
 @click.option("--config-file", "-c", default="", help="Configuration file")
 @click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
 @click.option("--yes-clean", "-y", is_flag=True, help="Skip confirmation and clean the system")
-def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
+def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
@@ -41,10 +41,10 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
         "L_x": 0.75,
         "L_y": 0.75,
         "L_z": 0.75,
-        "map_case": map_case,
         "x_wall": x_wall,
         "x_bulk": x_bulk,
-        "r": 1.1,
+        "r": 1.05,
+        "highRe": highre,
         "bSource": buoyancy_source,
         "turbulence": turbulence,
         "RASModel":model,
@@ -80,6 +80,8 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
         print("Reading parameters from", config_file)
         parameters.update(read_parameters(config_file))
 
+    run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
+
     T0 = parameters["T_avg"]
     thermo = tp.ThermophysicalProperties("constant/thermophysicalProperties")
     cp = thermo.Cp(T0)
@@ -94,11 +96,11 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
     Ra = Pr*g*beta*rho**2*deltaT*L**3/(mu**2)
     print(f"Rayleigh number: {Ra: .4e}")
 
-    if parameters["bSource"].lower() == "true":
-        run_command(["cp", "constant/fvOptions.bSource", "constant/fvOptions"], dry_run)
+    if parameters["bSource"]:
+        run_command(["cp", "constant/fvModels.bSource", "constant/fvModels"], dry_run)
         print("Buoyancy source term is included")
     else:
-        run_command(["rm", "-f", "constant/fvOptions"], dry_run)
+        run_command(["rm", "-f", "constant/fvModels"], dry_run)
         print("Buoyancy source term is not included")
 
     if not parameters["turbulence"] or parameters["turbulence"] == "laminar":
@@ -134,10 +136,17 @@ def main(turbulence, map_case, model, buoyancy_source, x_wall, x_bulk, n_process
     run_command(["rm", "-rf", "postProcessing"], dry_run)
     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
 
-    if parameters["map_case"]:
-        raise NotImplementedError("Mapping fields from another case is not yet implemented")
+    if parameters["highRe"]:
+        run_command("cp highReBC/* 0/", dry_run, shell=True)
+        print("Using high-Re turbulent boundary conditions")
+    else:
+        run_command("cp lowReBC/* 0/", dry_run, shell=True)
+        print("Using low-Re turbulent boundary conditions")
 
-    run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+    if parameters["n_processors"] > 1:
+        run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+
+    run_command(["cp", "system/controlDict.run", "system/controlDict"], dry_run)
 
     print("Ready to run the simulation")
 
