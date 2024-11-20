@@ -22,7 +22,7 @@ boundaryField
   {
     "wall.*"
     {
-      type            fWallFunction;
+      type            fixedValue;
       value           uniform 0;
     }
     "empty.*"

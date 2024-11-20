@@ -18,7 +18,7 @@ FoamFile
 
 dimensions      [0 2 -3 0 0 0 0];
 
-internalField   uniform 1e-9;
+internalField   uniform 1e-3;
 
 boundaryField
 {
@@ -29,6 +29,7 @@ boundaryField
     bottom
     {
         type            epsilonWallFunction;
+        lowReCorrection on;
         value           $internalField;
     }
 
