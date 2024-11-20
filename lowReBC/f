@@ -16,14 +16,14 @@ FoamFile
 
 dimensions      [ 0 0 -1 0 0 0 0 ];
 
-internalField   uniform 1e-1;
+internalField   uniform 1;
 
 boundaryField
   {
     "wall.*"
     {
       type            fWallFunction;
-      value           $internalField;
+      value           uniform 0;
     }
     "empty.*"
     {
