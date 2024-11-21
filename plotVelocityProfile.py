@@ -45,17 +45,24 @@ for postProcessing in folders:
     pp_color = f"C{i}"
     i += 1
 
-    vertical = fu.load_sampling_set(f"{postProcessing}/linesample", time, "vertical")
+    vertical = fu.load_sampling_set(f"{postProcessing}/linesample", time, "vertical", org=False)
     horizontal = fu.load_sampling_set(
-        f"{postProcessing}/linesample", time, "horizontal"
-    )
-    right = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "rightwall")
-    left = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "leftwall")
+        f"{postProcessing}/linesample", time, "horizontal", org=False)
+    # right = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "rightwall", org=False)
+    # left = fu.load_sampling_set(f"{postProcessing}/wallsample", time, "leftwall", org=False)
+
+    # right = fu.load(f"{postProcessing}/right_wall/{time}/line.xy")
+    # left = fu.load(f"{postProcessing}/left_wall/{time}/line.xy")
+    right = fu.load_sampling_set(f"{postProcessing}/right_wall", time, "line", org=False)
+    left = fu.load_sampling_set(f"{postProcessing}/left_wall", time, "line", org=False)
+    print(left)
+    # q_right = right[:,1]
+    # q_left = left[:,1]
 
     z = vertical["z"]  # vertical[:, 0]
     z_right = right["z"]
     z_left = left["z"]
-    T_vert = vertical["T"]  # [:, iT]
+    T_vert = vertical["TMean"]  # [:, iT]
     Ux_vert = vertical["UMeanx"]  # [:, iUx]
     Uz_vert = vertical["UMeanx"]  #:, iUz]
 
@@ -67,7 +74,7 @@ for postProcessing in folders:
 
     T_hor = horizontal["TMean"]  # [:, 1]
     Uz_hor = horizontal["UMeanz"]  # [:, iUz]
-    # k_hor = horizontal["kMean"]  # [:, 1]
+    k_hor = horizontal["kMean"]  # [:, 1]
     x = horizontal["x"]  # [:, 0]
 
     Uz_left = horizontal["UMeanz"]  # [:, iUz]
@@ -100,7 +107,8 @@ for postProcessing in folders:
 
     Nu_left = q_left * L / ((Th - Tc) * thermo.kappa(Th))
     ax[2].plot(
-        Nu_left,
+        # Nu_left,
+        q_left,
         z_left / L,
         label="Left wall",
         color=pp_color,
@@ -113,20 +121,20 @@ for postProcessing in folders:
         color=pp_color,
     )
 
-    ax[3].plot(x / L, Uz_hor / V0, label=label, marker="x", markevery=2, color=pp_color)
+    ax[3].plot(x / L, Uz_hor / V0, label=label, marker="x", markevery=1, color=pp_color)
 
     ax[4].plot(
         x / L,
         (T_hor - Tc) / DeltaT,
         label=label,
         marker="x",
-        markevery=2,
+        markevery=1,
         color=pp_color,
     )
 
-    # ax[5].plot(
-    #     x / L, k_hor / V0**2, label=label, marker="x", markevery=2, color=pp_color
-    # )
+    ax[5].plot(
+        x / L, k_hor / V0**2, label=label, marker="x", markevery=1, color=pp_color
+    )
 
 ax[0].set_ylabel("z/L [-]")
 ax[0].set_xlabel("Ux [m/s]")
