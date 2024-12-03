@@ -70,9 +70,9 @@ for postProcessing in folders:
     Nu_left = wp.Nusselt(q_left, Th - Tc, L, thermo.kappa(Th))
     Nu_right = wp.Nusselt(q_right, Th - Tc, L, thermo.kappa(Tc))
 
-    T_hor = horizontal["T"]  # [:, 1]
-    Uz_hor = horizontal["Uz"]  # [:, iUz]
-    # k_hor = horizontal["k"]  # [:, 1]
+    T_hor = horizontal["TMean"]  # [:, 1]
+    Uz_hor = horizontal["UMeanz"]  # [:, iUz]
+    k_hor = horizontal["kMean"]  # [:, 1]
     x = horizontal["x"]  # [:, 0]
 
     Uz_left = horizontal["Uz"]  # [:, iUz]
@@ -130,9 +130,9 @@ for postProcessing in folders:
         color=pp_color,
     )
 
-    # ax[5].plot(
-    #     x / L, k_hor / V0**2, label=label, marker="x", markevery=1, color=pp_color
-    # )
+    ax[5].plot(
+        x / L, k_hor / V0**2, label=label, marker="x", markevery=1, color=pp_color
+    )
 
 ax[0].set_ylabel("z/L [-]")
 ax[0].set_xlabel("Ux [m/s]")
@@ -211,7 +211,7 @@ fig.tight_layout()
 #     # print(f"{ppDir} Qc = {Qc}")
 #     # print(f"{ppDir} Qh = {Qh}")
 
-#     Nu_c = wp.Nusselt(Qc, Th - Tc, L, thermo.kappa(T0))
+    # Nu_c = wp.Nusselt(Qc, Th - Tc, L, thermo.kappa(T0))
 #     Nu_h = wp.Nusselt(Qh, Th - Tc, L, thermo.kappa(T0))
 #     Nu_avg = (Nu_c + Nu_h) / 2
 #     # print(f"{ppDir} Nu_c = {Nu_c}")
