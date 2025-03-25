@@ -1,13 +1,14 @@
 import datetime
 from subprocess import run
 import shutil, glob
+import toml
 
 import click
 
 from boundary_layer import (foam_grading, foam_grading_string,
                             replace_blocks_content,
                             write_blocks_to_parameters)
-from FoamUtils import ThermophysicalProperties as tp
+from FoamUtils import ThermophysicalProperties 
 from FoamUtils import read_parameters
 
 g = 9.81
@@ -19,94 +20,128 @@ def run_command(command, dry_run=False, shell=False):
         run(command, shell=shell)
 
 
-@click.command()
-@click.option("--turbulence", "-t", is_flag=True, help="Include turbulence model")
-@click.option('--highRe', is_flag=True, help="Run simulation with high-Re turbulent boundary conditions")
-@click.option("--model", "-m", default="kOmegaSST", help="Turbulence model")
-@click.option("--buoyancy-source", "-b", is_flag=True, help="Include buoyancy source term")
-@click.option("--x-wall", default=0.1e-3, help="Wall cell size")
-@click.option("--x-bulk", default=0.005, help="Bulk cell size")
-@click.option("--n-processors", "-np", default=1, help="Number of processors")
-@click.option("--decomp-method", "-d", default="scotch", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
-@click.option("--n-decomp", "-n", default="(1 1 1)", help="Coeffs for simple and hierarchical decomposition")
-@click.option("--config-file", "-c", default="", help="Configuration file")
-@click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
-@click.option("--yes-clean", "-y", is_flag=True, help="Skip confirmation and clean the system")
-def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
+
+
+def main(input_file=None, override=None):
+
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
     """
-    parameters = {
+    parameters = {   # Default parameters
         "L_x": 0.75,
         "L_y": 0.75,
         "L_z": 0.75,
-        "x_wall": x_wall,
-        "x_bulk": x_bulk,
+        "x_wall": 0.5e-3,
+        "x_bulk": 15e-3,
         "r": 1.05,
-        "highRe": highre,
-        "bSource": buoyancy_source,
-        "turbulence": turbulence,
-        "RASModel":model,
+        "highRe": False,
+        "bSource": False,
+        "RASModel": "laminar",
         "p_outlet": 101325,
-        "n_processors": n_processors,
-        "decompMethod": decomp_method,
-        "nDecomp": n_decomp,
+        "n_processors": 1,
+        "decompMethod": "simple",
+        "nDecomp": "(2 1 2)",
+        "THFM": "GGDH"
     }
+    dry_run = False
 
-    a = False
-    if dry_run:
-        print("Dry-run mode enabled. No system changes will be made.")
-    elif not yes_clean:
-        a = input("This will overwrite the current system. Are you sure you want to continue? (y/n): ")
-        a = a.lower() == "y"
-    if a or yes_clean:
-        shutil.rmtree("0", ignore_errors=True)
-        shutil.rmtree("postProcessing", ignore_errors=True)
-        run_command(["foamListTimes", "-rm"], dry_run)
-        for processor in glob.glob("processor*"):
-            shutil.rmtree(processor, ignore_errors=True)
-    else:
-        print("Exiting without making any changes")
-        return
-        
+    if input_file:
+        parameters.update(toml.load(input_file))
+    if override:
+        parameters.update(override)
+
+
+    shutil.rmtree("0", ignore_errors=True)
+    shutil.rmtree("postProcessing", ignore_errors=True)
+    run_command(["foamListTimes", "-rm"], dry_run)
+    for processor in glob.glob("processor*"):
+        shutil.rmtree(processor, ignore_errors=True)
 
     parameters["T_right"] = 283.15
     parameters["T_left"] = 323.15
     parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"])/2
     parameters["M"] = 28.96
 
-    if config_file:
-        print("Reading parameters from", config_file)
-        parameters.update(read_parameters(config_file))
+    if parameters["LTS"]:
+        parameters.update({
+            "endTime": 50000,
+            "writeInterval": 1000,
+            "timeStep": 1,
+            "adjustTimeStep": "no",
+            "ddtScheme": "localEuler",
+            "restartPeriod": 10000,
+        })
+    else:
+        parameters.update({
+            "endTime": 900,
+            "writeInterval": 100,
+            "timeStep": 1e-4,
+            "adjustTimeStep": "yes",
+            "ddtScheme": "CrankNicolson 0.75",
+            "restartPeriod": 300,
+        })
 
     run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
 
     T0 = parameters["T_avg"]
-    thermo = tp.ThermophysicalProperties("constant/thermophysicalProperties")
+    thermo = ThermophysicalProperties("constant/thermophysicalProperties")
     cp = thermo.Cp(T0)
     mu = thermo.mu(T0)
     kappa = thermo.kappa(T0)
-    beta = thermo.beta(parameters["p_outlet"], T0)
+    beta = 1/T0 #thermo.beta(parameters["p_outlet"], T0)
     Pr = thermo.Pr(T0)
     rho = thermo.rho(parameters["p_outlet"], T0)
     L = parameters["L_x"]
     deltaT = parameters["T_left"] - parameters["T_right"]
 
+    print(f"{Pr=}, {rho=}, {beta=}, {mu=}, {kappa=}, {cp=}, {L=}, {deltaT=}")
+
     Ra = Pr*g*beta*rho**2*deltaT*L**3/(mu**2)
     print(f"Rayleigh number: {Ra: .4e}")
 
-    if parameters["bSource"]:
+    def find_Th_H2(x):
+        print(f"\nRunning with Th = {x[0]}")
+        Th = float(x[0])
+        Tc = 20
+        target_Ra = 1.58e9
+        T0 = (Th + Tc) / 2
+        thermo = ThermophysicalProperties("constant/thermophysicalProperties")
+        cp = thermo.Cp(T0)
+        mu = thermo.mu(T0)
+        kappa = thermo.kappa(T0)
+        beta = thermo.beta(parameters["p_outlet"], T0)
+        Pr = thermo.Pr(T0)
+        rho = thermo.rho(parameters["p_outlet"], T0)
+        rho_c = thermo.rho(parameters["p_outlet"], Tc)
+        rho_h = thermo.rho(parameters["p_outlet"], Th)
+        print(f"rho(Tc): {rho_c}, rho(Th): {rho_h}")
+        deltaRho = thermo.rho(parameters["p_outlet"], Tc) - thermo.rho(parameters["p_outlet"], Th)
+        alpha = kappa/(rho*cp)
+        L = parameters["L_x"]
+        deltaT = Th - Tc
+        print(f"{deltaRho=}, {alpha=}, {L=}, {deltaT=}")
+        Ra = deltaRho*(L**3)*g/(mu*alpha)
+        print(f"{rho=}, {beta=}, {T0=}, {Pr=}, {Ra= :.4e} {Th=}, {Tc=}, {deltaT=}, {L=}, {mu=}, {kappa=}, {cp=} ")
+        print(f"{Th=}, {Ra= :.4e}")
+        return Ra - target_Ra
+
+    # from scipy.optimize import fsolve
+    # Th = fsolve(find_Th_H2, [50])[0]
+    # print(f"Th: {Th}")
+    # exit()
+
+
+    if parameters["bSource"] and parameters["RASModel"] not in ["v2fBuoyant", "buoyantKEpsilon"]:
         run_command(["cp", "constant/fvModels.bSource", "constant/fvModels"], dry_run)
         print("Buoyancy source term is included")
     else:
         run_command(["rm", "-f", "constant/fvModels"], dry_run)
         print("Buoyancy source term is not included")
 
-    if not parameters["turbulence"] or parameters["turbulence"] == "laminar":
+    if parameters["RASModel"] == "laminar":
         parameters["simulationType"] = "laminar"
         parameters["turbulence"] = "false"
-        parameters["RASModel"] = "laminar"
     else:
         parameters["simulationType"] = "RAS"
         parameters["turbulence"] = "true"
@@ -157,7 +192,18 @@ def write_parameters(parameters, dry_run=False):
             if key not in ["date"]:
                 f.write(f"{key} {value};\n")
 
+@click.command()
+@click.option("--input-file", "-i", help="Input file")
+@click.option(
+    "--override",
+    "-o",
+    nargs=2,
+    multiple=True,
+    help="Override specific parameters from the input file in 'key value' pairs.",
+)
+def main_click(input_file, override):
+    main(input_file, dict(override))
 
 if __name__ == "__main__":
-    main()
+    main_click()
 

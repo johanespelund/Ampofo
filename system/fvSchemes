@@ -14,10 +14,14 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include "../parameters"
+
 ddtSchemes
 {
-    // default         Euler;
-    default         CrankNicolson 0.5;
+    default $ddtScheme;
+    // default         localEuler;
+    // default         steadyState;
+    // default         CrankNicolson 0.5;
     // default         backward;
 }
 

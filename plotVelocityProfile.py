@@ -64,8 +64,8 @@ for postProcessing in folders:
     Ux_vert = vertical["Ux"]  # [:, iUx]
     Uz_vert = vertical["Ux"]  #:, iUz]
 
-    q_right = right["wallHeatFlux"]  # [:, 1]
-    q_left = left["wallHeatFlux"]  # [:, 1
+    q_right = right["wallHeatFluxM..."]  # [:, 1]
+    q_left = left["wallHeatFluxM..."]  # [:, 1
 
     Nu_left = wp.Nusselt(q_left, Th - Tc, L, thermo.kappa(Th))
     Nu_right = wp.Nusselt(q_right, Th - Tc, L, thermo.kappa(Tc))
@@ -99,21 +99,23 @@ for postProcessing in folders:
     phiPlus_left = wp.phi_plus(Uz_left, T_left, n_left, rho_left, Tref, thermo)
     phiPlus_right = wp.phi_plus(Uz_left, T_right, n_right, rho_right, Tref, thermo)
 
-    ax[0].plot(Ux_vert, z, label=label, marker="x", markevery=2, color=pp_color)
+    ax[0].plot(Ux_vert, z, label=label, marker="x", markevery=1, color=pp_color)
 
-    ax[1].plot(T_vert, z, label=label, marker="x", markevery=2, color=pp_color)
+    ax[1].plot(T_vert, z, label=label, marker="x", markevery=1, color=pp_color)
 
     Nu_left = q_left * L / ((Th - Tc) * thermo.kappa(Th))
+    Nu_left_mean = np.trapz(Nu_left, z_left) / L
+    print(f"{label} Nu_left_mean = {Nu_left_mean}")
     ax[2].plot(
-        # Nu_left,
-        q_left,
+        Nu_left,
+        # q_left,
         z_left / L,
         label="Left wall",
         color=pp_color,
     )
     ax[2].plot(
-        -Nu_right,
-        z_right / L,
+        Nu_right,
+        1 - (z_right / L),
         label="Right wall",
         ls="--",
         color=pp_color,
@@ -176,16 +178,25 @@ fig.legend(
     frameon=True,
 )
 fig.tight_layout()
-# plt.figure()
+plt.figure()
 
-# k = 0
-# for ppDir in folders:
-#     pp_color = f"C{k}"
-#     k += 1
-#     t, whf = fu.load_wallHeatFlux(f"{ppDir}/wallHeatFlux/0/wallHeatFlux.dat", start=100)
-#     plt.plot(t, -whf["wall_right"], label=f"$Q_c$ {ppDir}", color=pp_color)
-#     # plt.plot(t, whf["wall_left"], label=f"$Q_h$ {ppDir}")
+k = 0
+for ppDir in folders:
+    pp_color = f"C{k}"
+    k += 1
+    # t, whf = fu.load_wallHeatFlux(f"{ppDir}/wallHeatFlux/2100/wallHeatFlux.dat", start=100)
+    data = fu.load_all_times(f"{ppDir}/Q_left", "surfaceFieldValue.dat")
+    t, Q_left = data["Time"], data["areaIntegrate(wallHeatFlux)"]
+    Nu_left = Q_left / L / ((Th - Tc) * thermo.kappa(Th))
+    plt.plot(t, Nu_left, label=f"$Nu_h$ {ppDir}", color=pp_color)
 
+    data = fu.load_all_times(f"{ppDir}/Q_right", "surfaceFieldValue.dat")
+    t, Q_right = data["Time"], data["areaIntegrate(wallHeatFlux)"]
+    Nu_right = -Q_right / L / ((Th - Tc) * thermo.kappa(Tc))
+    plt.plot(t, Nu_right, label=f"$Nu_c$ {ppDir}", color=pp_color, ls="--")
+
+    # plt.plot(t, -whf["wall_right"], label=f"$Q_c$ {ppDir}", color=pp_color)
+    # plt.plot(t, whf["wall_left"], label=f"$Q_h$ {ppDir}")
 
 #     peaks, _ = sp.signal.find_peaks(-whf["wall_right"], distance=1000)
 #     i_start, i_end = peaks[-10], peaks[-1]
