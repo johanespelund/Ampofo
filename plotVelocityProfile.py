@@ -18,31 +18,63 @@ Ampofo = Ampofo.Ampofo()
 from functions import time_average
 
 folders = [
-    "postProcessing",
+    # "postProcessing",
+    # "./cases/test/2025-03-25_Ampofo_kOmegaSST_W0.0005_B0.01_BtsFalse_LTS-True/postProcessing",
+    # "./cases/test/2025-03-25_Ampofo_laminar_W0.0005_B0.01_BtsFalse_LTS-True/postProcessing",
+    # "./cases/bSource-GGDH/2025-03-25_Ampofo_kOmegaSST_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+
+    # "./cases/no_bSource_transient/2025-03-25_Ampofo_LaunderSharmaKE_W0.0005_B0.01_BtsFalse_LTS-False_maxCo0.1/postProcessing",
+    # "./cases/no_bSource_transient/2025-03-25_Ampofo_kOmegaSST_W0.0005_B0.01_BtsFalse_LTS-False_maxCo0.1/postProcessing",
+    # "./cases/no_bSource_transient/2025-03-25_Ampofo_v2f_W0.0005_B0.01_BtsFalse_LTS-False_maxCo0.1/postProcessing",
+
+    "./cases/bSource-SGDH/2025-03-25_Ampofo_v2f_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-SGDH/2025-03-25_Ampofo_kOmegaSST_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-SGDH/2025-03-25_Ampofo_kOmega_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-SGDH/2025-03-25_Ampofo_LaunderSharmaKE_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+
+    "./cases/bSource-GGDH/2025-03-25_Ampofo_v2f_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-GGDH/2025-03-25_Ampofo_kOmegaSST_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-GGDH/2025-03-25_Ampofo_kOmega_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+    "./cases/bSource-GGDH/2025-03-25_Ampofo_LaunderSharmaKE_W0.0005_B0.01_BtsTrue_LTS-True/postProcessing",
+
+    # "./cases/no_bSource_transient/2025-03-25_Ampofo_LaunderSharmaKE_W0.0005_B0.01_BtsFalse_LTS-False_maxCo0.1/postProcessing",
     # "./cases/kOmegaSST/0.5cm0.3mm_noSource/postProcessing",
     # "./cases/kOmegaSST/1cm0.3mm_noSource/postProcessing",
     # "./cases/kOmegaSST/2cm0.3mm_noSource/postProcessing",
 ]
 
+labels = [
+    "v2f", "kOmegaSST", "kOmega", "LSKE",
+    "v2f-G", "kOmegaSST-G", "kOmega-G", "LSKE-G",
+]
+
+linestyles = ["-"]*4 + ["--"]*4
+colors = [f"C{i}" for i in range(4)] * 2
+
 thermo = ThermophysicalProperties("constant/thermophysicalProperties")
 
 # Read the n last velocity profiles
-parameters = fu.read_parameters("parameters")
-Th, Tc = parameters["T_left"], parameters["T_right"]
-DeltaT = Th - Tc
-T0 = (Th + Tc) / 2
-L = parameters["L_x"]
-V0 = np.sqrt(9.81 * L * (Th - Tc) / T0)
 
+marker = "none"
 fig, ax = plt.subplots(2, 3, figsize=(9, 4))
 ax = ax.flatten()
 i = 0
 for postProcessing in folders:
+    parameters = fu.read_parameters(f"{postProcessing}/../parameters")
+    print(f"turbulence model: {parameters['RASModel']}")
+    Th, Tc = parameters["T_left"], parameters["T_right"]
+    DeltaT = Th - Tc
+    T0 = (Th + Tc) / 2
+    L = parameters["L_x"]
+    V0 = np.sqrt(9.81 * L * (Th - Tc) / T0)
     print(f"Plotting {postProcessing}")
-    label = postProcessing.split("/")[0]
+    label = labels[i] #postProcessing.split("/")[0]
     sorted_folders = fu.get_sorted_times(f"{postProcessing}/linesample")
+    print(f"{sorted_folders=}")
     time = sorted_folders[-1]
-    pp_color = f"C{i}"
+    print(f"{time=}")
+    pp_color = colors[i]
+    ls = linestyles[i]
     i += 1
 
     vertical = fu.load_sampling_set(f"{postProcessing}/linesample", time, "vertical", org=True)
@@ -72,8 +104,12 @@ for postProcessing in folders:
 
     T_hor = horizontal["TMean"]  # [:, 1]
     Uz_hor = horizontal["UMeanz"]  # [:, iUz]
-    k_hor = horizontal["kMean"]  # [:, 1]
+
     x = horizontal["x"]  # [:, 0]
+    if parameters["RASModel"] != "laminar":
+        k_hor = horizontal["kMean"]  # [:, 1
+    else:
+        k_hor = x*0
 
     Uz_left = horizontal["Uz"]  # [:, iUz]
     Uz_right = np.flip(Uz_left)
@@ -99,9 +135,9 @@ for postProcessing in folders:
     phiPlus_left = wp.phi_plus(Uz_left, T_left, n_left, rho_left, Tref, thermo)
     phiPlus_right = wp.phi_plus(Uz_left, T_right, n_right, rho_right, Tref, thermo)
 
-    ax[0].plot(Ux_vert, z, label=label, marker="x", markevery=1, color=pp_color)
+    ax[0].plot(Ux_vert, z, label=label, marker=marker, markevery=1, color=pp_color, ls=ls)
 
-    ax[1].plot(T_vert, z, label=label, marker="x", markevery=1, color=pp_color)
+    ax[1].plot(T_vert, z, label=label, marker=marker, markevery=1, color=pp_color, ls=ls)
 
     Nu_left = q_left * L / ((Th - Tc) * thermo.kappa(Th))
     Nu_left_mean = np.trapz(Nu_left, z_left) / L
@@ -111,29 +147,29 @@ for postProcessing in folders:
         # q_left,
         z_left / L,
         label="Left wall",
-        color=pp_color,
+        color=pp_color, ls=ls
     )
     ax[2].plot(
         Nu_right,
         1 - (z_right / L),
         label="Right wall",
-        ls="--",
-        color=pp_color,
+        color=pp_color, ls=ls
     )
 
-    ax[3].plot(x / L, Uz_hor / V0, label=label, marker="x", markevery=1, color=pp_color)
+    ax[3].plot(x / L, Uz_hor / V0, label=label, marker=marker, markevery=1, color=pp_color, ls=ls)
 
     ax[4].plot(
         x / L,
         (T_hor - Tc) / DeltaT,
         label=label,
-        marker="x",
+        marker=marker,
         markevery=1,
         color=pp_color,
+        ls=ls
     )
 
     ax[5].plot(
-        x / L, k_hor / V0**2, label=label, marker="x", markevery=1, color=pp_color
+        x / L, k_hor / V0**2, label=label, marker=marker, markevery=1, color=pp_color, ls=ls
     )
 
 ax[0].set_ylabel("z/L [-]")

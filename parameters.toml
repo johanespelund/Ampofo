@@ -5,13 +5,13 @@ r = 1.05
 
 # Turbulence parameters
 RASModel = "v2f"
-bSource = false
+bSource = true
 highRe = false
 THFM = "GGDH"
 
 # Simulation parameters
-LTS = true
-maxCo = 0.20
+LTS = false
+maxCo = 0.10
 decompMethod = "simple"
 nDecomp = "(2 1 2)"
 n_processors = 4

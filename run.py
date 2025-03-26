@@ -67,7 +67,7 @@ def main(input_file=None, override=None):
         parameters.update({
             "endTime": 50000,
             "writeInterval": 1000,
-            "timeStep": 1,
+            "deltaT": 1,
             "adjustTimeStep": "no",
             "ddtScheme": "localEuler",
             "restartPeriod": 10000,
@@ -76,9 +76,9 @@ def main(input_file=None, override=None):
         parameters.update({
             "endTime": 900,
             "writeInterval": 100,
-            "timeStep": 1e-4,
+            "deltaT": 1e-4,
             "adjustTimeStep": "yes",
-            "ddtScheme": "CrankNicolson 0.75",
+            "ddtScheme": "CrankNicolson 0.5",
             "restartPeriod": 300,
         })
 
@@ -178,8 +178,8 @@ def main(input_file=None, override=None):
         run_command("cp lowReBC/* 0/", dry_run, shell=True)
         print("Using low-Re turbulent boundary conditions")
 
-    if parameters["n_processors"] > 1:
-        run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+    # if parameters["n_processors"] > 1:
+    #     run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
 
     run_command(["cp", "system/controlDict.run", "system/controlDict"], dry_run)
 
