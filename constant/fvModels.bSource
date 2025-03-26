@@ -19,10 +19,14 @@ FoamFile
 buoyancyTurbSource1
 {
     type            buoyancyTurbSource;
-    alphat          alphat;
-    T               T;
-    rho             rho;
     THFM            $THFM;
+    
+    // Fields to apply source to
+    k true;
+    epsilon true;
+    v2 true;
+    omega false; // Negl. effect according to Peng and Davidson (1999)
+    f false; // Doesnt work anyways
 }
 
 //************************************************************************* //
