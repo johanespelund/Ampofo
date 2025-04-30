@@ -14,12 +14,12 @@ class DNS:
         self.data = None
         self.plot_params = {
             "marker": "o",
-            "markevery": 0.1,
+            "markevery": 0.02,
             "markersize": 3,
             "markerfacecolor": "w",
             "markeredgecolor": "k",
             "color": "k",
-            "linestyle": "-",
+            "linestyle": "none",
             "label": "DNS",
             "zorder": 0,
         }
