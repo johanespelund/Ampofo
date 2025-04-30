@@ -18,13 +18,15 @@ thermoType
 {
     type            heRhoThermo;
     mixture         pureMixture;
-    // transport       const;
-    transport       sutherland;
+    transport       const;
+    // transport       sutherland;
     thermo          hConst;
-    equationOfState perfectGas;
+    equationOfState Boussinesq;
     specie          specie;
     energy          sensibleEnthalpy;
 }
+
+#include "../parameters"
 
 mixture
 {
@@ -47,6 +49,12 @@ mixture
         // sutherland
        As               1.4792e-06;
        Ts               116;
+    }
+    equationOfState
+    {
+        rho             $rho0;
+        // Boussinesq
+        beta            $beta;
     }
 }
 
