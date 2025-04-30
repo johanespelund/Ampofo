@@ -20,7 +20,7 @@ buoyancyTurbSource1
 {
     type            buoyancyTurbSource;
     THFM            $THFM;       // SGDH or GGDH
-    Cg              1.176470588; // 1/Prt (Prt = 0.85)
+    Cg              $Cg; // 1/Prt (Prt = 0.85)
     
     // Fields to apply source to
     k true;
