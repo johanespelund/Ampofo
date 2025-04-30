@@ -22,8 +22,8 @@ method              $decompMethod;
 
 
 // Optional decomposition constraints
-//constraints
-//{
+constraints
+{
 //    preserveBaffles
 //    {
 //        //- Keep owner and neighbour of baffles on same processor (i.e.
@@ -58,13 +58,13 @@ method              $decompMethod;
 //        type    singleProcessorFaceSets;
 //        singleProcessorFaceSets ((f1 -1));
 //    }
-//    refinementHistory
-//    {
-//        //- Decompose cells such that all cell originating from single cell
-//        //  end up on same processor
-//        type    refinementHistory;
-//    }
-//}
+   refinementHistory
+   {
+       //- Decompose cells such that all cell originating from single cell
+       //  end up on same processor
+       type    refinementHistory;
+   }
+}
 
 
 // Deprecated form of specifying decomposition constraints:
