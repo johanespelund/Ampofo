@@ -1,37 +1,33 @@
 import datetime
+import glob
+import shutil
 from subprocess import run
-import shutil, glob
-import toml
 
 import click
+import toml
+from FoamUtils import ThermophysicalProperties, read_parameters
 
 from boundary_layer import (foam_grading, foam_grading_string,
-                            replace_blocks_content,
-                            write_blocks_to_parameters)
-from FoamUtils import ThermophysicalProperties 
-from FoamUtils import read_parameters
+                            replace_blocks_content, write_blocks_to_parameters)
 
 g = 9.81
 
+
 def run_command(command, dry_run=False, shell=False):
     if dry_run:
-        print(f"Dry-run: Would execute command: {' '.join(command) if isinstance(command, list) else command}")
+        print(
+            f"Dry-run: Would execute command: {' '.join(command) if isinstance(command, list) else command}"
+        )
     else:
         run(command, shell=shell)
 
 
-
-
 def main(input_file=None, override=None):
-
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
     """
-    parameters = {   # Default parameters
-        "L_x": 0.75,
-        "L_y": 0.75,
-        "L_z": 0.75,
+    parameters = {  # Default parameters
         "x_wall": 0.5e-3,
         "x_bulk": 15e-3,
         "r": 1.05,
@@ -42,7 +38,7 @@ def main(input_file=None, override=None):
         "n_processors": 1,
         "decompMethod": "simple",
         "nDecomp": "(2 1 2)",
-        "THFM": "GGDH"
+        "THFM": "GGDH",
     }
     dry_run = False
 
@@ -51,6 +47,31 @@ def main(input_file=None, override=None):
     if override:
         parameters.update(override)
 
+    LH2 = parameters["fluid"] == "H2"
+
+    if LH2:
+        parameters["L_x"] = 0.09057
+        parameters["L_y"] = 0.09057
+        parameters["L_z"] = 0.09057
+        parameters["T_right"] = 20
+        parameters["T_left"] = 30
+        parameters["M"] = 2.01588
+        parameters["horizontalHeatType"] = "zeroGradient"
+    else:
+        parameters["L_x"] = 0.75
+        parameters["L_y"] = 0.75
+        parameters["L_z"] = 0.75
+        parameters["T_right"] = 283.15
+        parameters["T_left"] = 323.15
+        parameters["M"] = 28.96
+        parameters["horizontalHeatType"] = "fixedValue"
+    parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"]) / 2
+
+    if parameters["Ra"]:
+        L = calc_L_from_Ra(parameters)
+        parameters["L_x"] = L
+        parameters["L_y"] = L
+        parameters["L_z"] = L
 
     shutil.rmtree("0", ignore_errors=True)
     shutil.rmtree("postProcessing", ignore_errors=True)
@@ -58,81 +79,36 @@ def main(input_file=None, override=None):
     for processor in glob.glob("processor*"):
         shutil.rmtree(processor, ignore_errors=True)
 
-    parameters["T_right"] = 283.15
-    parameters["T_left"] = 323.15
-    parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"])/2
-    parameters["M"] = 28.96
-
     if parameters["LTS"]:
-        parameters.update({
-            "endTime": 50000,
-            "writeInterval": 1000,
-            "deltaT": 1,
-            "adjustTimeStep": "no",
-            "ddtScheme": "localEuler",
-            "restartPeriod": 10000,
-        })
+        parameters.update(
+            {
+                "endTime": 50000,
+                "writeInterval": 1000,
+                "deltaT": 1,
+                "adjustTimeStep": "no",
+                "ddtScheme": "localEuler",
+                "restartPeriod": 10000,
+            }
+        )
     else:
-        parameters.update({
-            "endTime": 900,
-            "writeInterval": 100,
-            "deltaT": 1e-4,
-            "adjustTimeStep": "yes",
-            "ddtScheme": "CrankNicolson 0.5",
-            "restartPeriod": 300,
-        })
+        parameters.update(
+            {
+                "endTime": 300 if LH2 else 900,
+                "writeInterval": 30 if LH2 else 100,
+                "deltaT": 1e-6 if LH2 else 1e-4,
+                "adjustTimeStep": "yes",
+                "ddtScheme": "Euler",
+                # "ddtScheme": "CrankNicolson 0.9",
+                "restartPeriod": 30 if LH2 else 300,
+            }
+        )
 
     run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
 
-    T0 = parameters["T_avg"]
-    thermo = ThermophysicalProperties("constant/thermophysicalProperties")
-    cp = thermo.Cp(T0)
-    mu = thermo.mu(T0)
-    kappa = thermo.kappa(T0)
-    beta = 1/T0 #thermo.beta(parameters["p_outlet"], T0)
-    Pr = thermo.Pr(T0)
-    rho = thermo.rho(parameters["p_outlet"], T0)
-    L = parameters["L_x"]
-    deltaT = parameters["T_left"] - parameters["T_right"]
-
-    print(f"{Pr=}, {rho=}, {beta=}, {mu=}, {kappa=}, {cp=}, {L=}, {deltaT=}")
-
-    Ra = Pr*g*beta*rho**2*deltaT*L**3/(mu**2)
-    print(f"Rayleigh number: {Ra: .4e}")
-
-    def find_Th_H2(x):
-        print(f"\nRunning with Th = {x[0]}")
-        Th = float(x[0])
-        Tc = 20
-        target_Ra = 1.58e9
-        T0 = (Th + Tc) / 2
-        thermo = ThermophysicalProperties("constant/thermophysicalProperties")
-        cp = thermo.Cp(T0)
-        mu = thermo.mu(T0)
-        kappa = thermo.kappa(T0)
-        beta = thermo.beta(parameters["p_outlet"], T0)
-        Pr = thermo.Pr(T0)
-        rho = thermo.rho(parameters["p_outlet"], T0)
-        rho_c = thermo.rho(parameters["p_outlet"], Tc)
-        rho_h = thermo.rho(parameters["p_outlet"], Th)
-        print(f"rho(Tc): {rho_c}, rho(Th): {rho_h}")
-        deltaRho = thermo.rho(parameters["p_outlet"], Tc) - thermo.rho(parameters["p_outlet"], Th)
-        alpha = kappa/(rho*cp)
-        L = parameters["L_x"]
-        deltaT = Th - Tc
-        print(f"{deltaRho=}, {alpha=}, {L=}, {deltaT=}")
-        Ra = deltaRho*(L**3)*g/(mu*alpha)
-        print(f"{rho=}, {beta=}, {T0=}, {Pr=}, {Ra= :.4e} {Th=}, {Tc=}, {deltaT=}, {L=}, {mu=}, {kappa=}, {cp=} ")
-        print(f"{Th=}, {Ra= :.4e}")
-        return Ra - target_Ra
-
-    # from scipy.optimize import fsolve
-    # Th = fsolve(find_Th_H2, [50])[0]
-    # print(f"Th: {Th}")
-    # exit()
-
-
-    if parameters["bSource"] and parameters["RASModel"] not in ["v2fBuoyant", "buoyantKEpsilon"]:
+    if parameters["bSource"] and parameters["RASModel"] not in [
+        "v2fBuoyant",
+        "buoyantKEpsilon",
+    ]:
         run_command(["cp", "constant/fvModels.bSource", "constant/fvModels"], dry_run)
         print("Buoyancy source term is included")
     else:
@@ -146,6 +122,8 @@ def main(input_file=None, override=None):
         parameters["simulationType"] = "RAS"
         parameters["turbulence"] = "true"
 
+    parameters["Cg"] = 1 / parameters["Prt"]
+
     grading_params = foam_grading(
         parameters["L_x"], parameters["x_wall"], parameters["x_bulk"], parameters["r"]
     )
@@ -153,11 +131,23 @@ def main(input_file=None, override=None):
 
     v_string = f"hex (0 1 2 3 4 5 6 7)"
     n_string = f"({n} 1 {n}) // x_wall: {parameters['x_wall']} x_bulk: {parameters['x_bulk']} r: {parameters['r']}"
-    grading_string = f"(\n\t\t\t\t\t{grading}\n\t\t\t\t\t1\n\t\t\t\t\t{grading}\n\t\t\t\t)"
+    grading_string = (
+        f"(\n\t\t\t\t\t{grading}\n\t\t\t\t\t1\n\t\t\t\t\t{grading}\n\t\t\t\t)"
+    )
     write_blocks_to_parameters(parameters, v_string, n_string, grading_string, dry_run)
 
-    parameters["nCells"] = int(n)**2
+    parameters["nCells"] = int(n) ** 2
     parameters["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    parameters[
+        "variables"
+    ] = f"""
+        (
+            "x=pos().x()"
+            "Tleft={parameters['T_left']}"
+            "Tright={parameters['T_right']}"
+            "L={parameters['L_x']}"
+        )
+    """
 
     write_parameters(parameters, dry_run)
 
@@ -169,7 +159,22 @@ def main(input_file=None, override=None):
     run_command(["rm", "-rf", "0"], dry_run)
     run_command(["cp", "-r", "0-orig", "0"], dry_run)
     run_command(["rm", "-rf", "postProcessing"], dry_run)
-    run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+    if not LH2:
+        print("Setting up initial conditions")
+        run_command(
+            [
+                f"setExprBoundaryFields -dict system/setExprBoundaryFieldsDict.{parameters['horizontalBC']} >> log.setExprBoundaryFields"
+            ],
+            dry_run,
+            shell=True,
+        )
+
+        # if parameters["horizontalBC"] == "experimental":
+        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+        # elif parameters["horizontalBC"] == "linear":
+        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+        # else:
+        #     raise ValueError("Invalid horizontal boundary condition")
 
     if parameters["highRe"]:
         run_command("cp highReBC/* 0/", dry_run, shell=True)
@@ -187,10 +192,32 @@ def main(input_file=None, override=None):
 
 
 def write_parameters(parameters, dry_run=False):
-    with open("parameters"+".dry-run"*dry_run, "w") as f:
+    with open("parameters" + ".dry-run" * dry_run, "w") as f:
         for key, value in parameters.items():
             if key not in ["date"]:
                 f.write(f"{key} {value};\n")
+
+
+def calc_L_from_Ra(parameters):
+    thermo = ThermophysicalProperties("constant/thermophysicalProperties")
+    p = parameters
+
+    beta = thermo.beta(p["p_outlet"], p["T_avg"])
+    Pr = thermo.Pr(p["T_avg"])
+    nu = thermo.mu(p["T_avg"]) / thermo.rho(p["p_outlet"], p["T_avg"])
+    DeltaT = abs(p["T_left"] - p["T_right"])
+    g = 9.81
+
+    # Ra = Pr*Gr = Pr*g*beta*DeltaT*L**3/(nu**2)
+    # L = (Ra*nu**2/(Pr*g*beta*DeltaT))**(1/3)
+    L = ((p["Ra"] * nu**2) / (Pr * g * beta * DeltaT)) ** (1 / 3)
+    print(f"Calculated L: {L} m")
+    Ra = Pr * g * beta * DeltaT * L**3 / (nu**2)
+
+    if abs(Ra - p["Ra"]) / Ra > 1e-6:
+        raise ValueError(f"Calculated Ra {Ra} does not match input Ra {p['Ra']}")
+    return L
+
 
 @click.command()
 @click.option("--input-file", "-i", help="Input file")
@@ -204,6 +231,6 @@ def write_parameters(parameters, dry_run=False):
 def main_click(input_file, override):
     main(input_file, dict(override))
 
+
 if __name__ == "__main__":
     main_click()
-
