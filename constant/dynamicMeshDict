@@ -1,0 +1,125 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// distributor
+// {
+//     type            distributor;
+
+//     libs            ("libfvMeshDistributors.so");
+
+//     redistributionInterval  10;
+// }
+
+// topoChanger
+// {
+
+//     // libs            ("libfvMeshTopoChangers.so");
+//     // type refiner;
+
+//     libs            ("libblastDynamicFvMesh.so");
+//     type            adaptiveFvMesh;
+
+//     // refiner         polyRefiner;
+//     // field $fiel
+
+//     // field magGradU;
+//     // lowerRefineLevel 10;
+//     // upperRefineLevel 75;
+//     // maxRefinement   2;
+
+//     errorEstimator multicomponent;
+//     errorEstimators
+//     (
+//         density
+//         {
+//             errorEstimator densityGradient;
+//             lowerRefineLevel 1;
+//             unrefineLevel 0.1;
+//             maxRefinement 2;
+//         }
+//         level1
+//         {
+//             errorEstimator  fieldValue;
+//             fieldName       mag(grad(U));
+//             lowerRefineLevel 10;
+//             // upperRefineLevel 75;
+//             upperRefineLevel 10000;
+//             unrefineLevel 5;
+//             maxRefinement   2;
+//             // minDx 0.005;
+//             // nBufferLayers   2;
+//             // nBufferLayers   4;
+//             // field $fieldName;
+//         }
+//         // mag(grad(U))_fine {
+//         //     errorEstimator  fieldValue;
+//         //     fieldName       magGradU;
+//         //     lowerRefineLevel 75;
+//         //     // upperRefineLevel 2500;
+//         //     unrefineLevel 50;
+//         //     maxRefinement   3;
+//         //     addLayers 2;
+//         //     nBufferLayers   2;
+//         //     // field $fieldName;
+//         // }
+//         // wallDist
+//         // {
+//         //     errorEstimator  cellSize;
+//         //     type hello;
+//         //     // fieldName       wallDist;
+//         //     // lowerRefineLevel 20;
+//         //     // upperRefineLevel 100;
+//         //     // unrefineLevel 15;
+//         //     // maxRefinement   2;
+//         //     // field $fieldName;
+//         // }
+
+//     );
+
+//     // fieldName dName;
+
+//     loadBalance {
+//         balance no;
+//         // balanceInterval 10;
+//         // allowableImbalance 0.10;
+//         // method scotch;
+//     }
+
+//     // nAddLayers 2;
+
+//     correctFluxes (
+//       (phi U)
+//     );
+
+//     // How often to refine
+//     refineInterval 10;
+
+//     mover           none;
+
+//     // Have slower than 2:1 refinement
+//     nRefinementBufferLayers   1;
+
+//     // Stop refinement if maxCells reached
+//     maxCells        200000;
+
+//     // Write the refinement level as a volScalarField
+//     dumpLevel       true;
+
+
+
+// }
+
+
+// ************************************************************************* //
