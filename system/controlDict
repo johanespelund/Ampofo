@@ -37,7 +37,7 @@ stopAt          endTime;
 
 writeControl    adjustableRunTime;
 
-// writeInterval   500;
+// writeInterval   0.2;
 
 purgeWrite      9;
 
@@ -62,6 +62,25 @@ runTimeModifiable true;
 functions
 {
   #includeFunc residuals(p_rgh,h,Ux,Uy,k,epsilon,omega)
+  grad(U)
+  {
+  type            grad;
+  libs            ("libfieldFunctionObjects.so");
+
+  field           U;
+
+  executeControl  timeStep;
+  writeControl    writeTime;
+  }
+  magGradU
+  {
+      type            mag;
+      libs            ("libfieldFunctionObjects.so");
+      field           grad(U);
+      executeControl  timeStep;
+      exectuteInterval  5;
+      writeControl    writeTime;
+  }
   wallHeatFlux
   {
     #includeEtc "caseDicts/postProcessing/fields/wallHeatFlux"
@@ -95,24 +114,24 @@ functions
       {
         type lineFace;
         axis z;
-        start (0.375 0.375 -1e3);
-        end (0.375 0.375 1e3);
+        start ($x_mid $x_mid -1e3);
+        end ($x_mid $x_mid 1e3);
       }
       horizontal
       {
         type lineFace;
         axis x;
-        start (-1e3 0.375 0.357);
-        end (1e3 0.375 0.357);
+        start (-1e3 $x_mid $x_mid);
+        end (1e3 $x_mid $x_mid);
       }
       );
-    fields (T p U rho thermo:mu TMean UMean rhoMean kMean nutMean);
+    fields (T p U rho k thermo:mu TMean UMean rhoMean kMean nutMean);
   }
 
   left_wall
   {
-    start (0 0.375 -1e3);
-    end (0 0.375  1e3);
+    start (0 $x_mid -1e3);
+    end (0 $x_mid  1e3);
     fields (wallHeatFlux wallHeatFluxMean);
     axis z;
     setFormat csv;
@@ -124,8 +143,8 @@ functions
   right_wall
   {
     $left_wall
-    start (0.375 0.375 -1e3);
-    end (0.375 0.375  1e3);
+    start ($x_mid $x_mid -1e3);
+    end ($x_mid $x_mid  1e3);
   }
 
   yPlus  // The name of the function object, can be anything you like
