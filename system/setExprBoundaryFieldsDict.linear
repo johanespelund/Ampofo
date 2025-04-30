@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2206                                 |
+|  \\    /   O peration     | Version:  v1912                                 |
 |   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -9,34 +9,47 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    object      alphat;
+    class       dictionary;
+    object      setExprBoundaryFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [ 1 -1 -1 0 0 0 0 ];
-
-internalField   uniform 0;
-
 #include "../parameters"
 
-boundaryField
+pattern
 {
-    frontAndBack
-  {
-    type empty;
-      }
-    "wall.*"
+  field T;
+expressions
+(
     {
-        type            compressible::alphatWallFunction;
-        Prt             $Prt;
-        value           $internalField;
+        patch       wall_top;
+        target      value;
+        variables $variables;
+        // (
+        //   "x=pos().x()"
+        // );
+        expression
+        #{
+           Tleft + x * (Tright - Tleft) / L
+        #};
     }
-    "proc.*"
-    {
-      type processor;
-    }
-}
+   {
+         patch       wall_bottom;
+         target      value;
+         variables $variables;
+         // variables
+         // (
+         //  "x=pos().x()"
+         // );
+         expression
+         #{
+           Tleft + x * (Tright - Tleft) / L
+         #};
+     }
+);
 
+ }
+
+ 
 
 // ************************************************************************* //

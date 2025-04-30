@@ -25,7 +25,7 @@ boundaryField
     
     wall_top
     {
-        type fixedValue;
+        type $horizontalHeatType;
         value uniform $T_avg;
     }
     wall_bottom
