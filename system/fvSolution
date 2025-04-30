@@ -52,7 +52,7 @@ solvers
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-10;
+        tolerance       1e-12;
         relTol          0.1;
         minIter        1;
     }
@@ -70,7 +70,10 @@ solvers
     //     relTol          0.0;
     //     minIter        1;
     // }
-
+    pcorr
+    {
+      $p_rgh;
+    }
 }
 
 PIMPLE
@@ -82,7 +85,7 @@ PIMPLE
     pRefCell            0;
     pRefValue           1e5;
     ddtCorr             true;
-    // turbOnFinalIterOnly false;
+    turbOnFinalIterOnly false;
     maxCo              $maxCo;
     maxDeltaT          10;
     rDeltaTSmoothingCoeff 0.05;
