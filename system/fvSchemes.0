@@ -42,7 +42,7 @@ divSchemes
     div(phi,K)      Gauss limitedLinear 1;
     div(meshPhi,p)  Gauss linear;
     // turbulence      Gauss upwind;
-    turbulence      Gauss limitedLinear 1;
+    turbulence      Gauss upwind;
     // turbulence      Gauss linearUpwind grad(k);
     div(phi,k)      $turbulence;
     div(phi,omega)  $turbulence;

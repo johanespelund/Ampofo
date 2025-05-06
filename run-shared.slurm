@@ -13,6 +13,13 @@ module load OpenFOAM/12-foss-2023a
 echo "Sourcing foam bashrc: $FOAM_BASH"
 source $FOAM_BASH
 
+echo "Will use the foamRun solver: " $(which foamRun)
+ls -l $(which foamRun)
+ldd $(which foamRun)
+
+echo "Starting the loop"
+
+
 # Define cases and processor counts
 cases=(<CASES>)
 n_processors=(<N_PROCESSORS>)
@@ -24,15 +31,14 @@ for i in "${!cases[@]}"; do
     cd "$case_dir"
 
     decomposePar > log.decomposePar
-    SOLVER="foamRun"
 
-    echo "Starting simulation in $case_dir with solver: $SOLVER and $n_proc processors"
-    srun --exclusive -n "$n_proc" "$SOLVER" -parallel > /dev/null 2>log.errors &
+    echo "Starting simulation in $case_dir with $n_proc processors"
+    srun --exclusive -n "$n_proc" foamRun -parallel > /dev/null 2>log.errors &
 
     cd -
 done
 
 wait
 
-echo "✅ All cases completed."
+echo "All cases completed."
 

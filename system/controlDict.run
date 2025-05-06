@@ -62,25 +62,24 @@ runTimeModifiable true;
 functions
 {
   #includeFunc residuals(p_rgh,h,Ux,Uy,k,epsilon,omega)
-  grad(U)
+  fvSchemesUpdate
   {
-  type            grad;
-  libs            ("libfieldFunctionObjects.so");
+  type            timeActivatedFileUpdate;
+  libs            ("libutilityFunctionObjects.so");
 
-  field           U;
+  fileToUpdate    "$FOAM_CASE/system/fvSchemes";
 
-  executeControl  timeStep;
   writeControl    writeTime;
+  writeInterval   1;
+
+  fileVsTime
+  (
+    (-1 "$FOAM_CASE/system/fvSchemes.0")
+    (30 "$FOAM_CASE/system/fvSchemes.30")
+  );
+
   }
-  magGradU
-  {
-      type            mag;
-      libs            ("libfieldFunctionObjects.so");
-      field           grad(U);
-      executeControl  timeStep;
-      exectuteInterval  5;
-      writeControl    writeTime;
-  }
+
   wallHeatFlux
   {
     #includeEtc "caseDicts/postProcessing/fields/wallHeatFlux"
@@ -160,10 +159,11 @@ functions
       libs ( "libfieldFunctionObjects.so" );
       enabled               true;
       writeControl       writeTime;
-      timeStart             0;
+      timeStart             100;
       timeEnd           $endTime;
       restartPeriod     $restartPeriod;
       resetOnOutput     false;
+      base              time;
           
       fields
       (

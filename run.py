@@ -72,6 +72,7 @@ def main(input_file=None, override=None):
         parameters["L_x"] = L
         parameters["L_y"] = L
         parameters["L_z"] = L
+    parameters["x_mid"] = L/2
 
     shutil.rmtree("0", ignore_errors=True)
     shutil.rmtree("postProcessing", ignore_errors=True)
@@ -93,13 +94,14 @@ def main(input_file=None, override=None):
     else:
         parameters.update(
             {
-                "endTime": 300 if LH2 else 900,
-                "writeInterval": 30 if LH2 else 100,
+                "endTime": 150 if LH2 else 600,
+                "writeInterval": 30 if LH2 else 50,
                 "deltaT": 1e-6 if LH2 else 1e-4,
                 "adjustTimeStep": "yes",
                 "ddtScheme": "Euler",
-                # "ddtScheme": "CrankNicolson 0.9",
-                "restartPeriod": 30 if LH2 else 300,
+                # "ddtScheme": "backward",
+                # "ddtScheme": "CrankNicolson 0.7",
+                "restartPeriod": 30 if LH2 else 200,
             }
         )
 
