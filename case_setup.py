@@ -8,30 +8,30 @@ from subprocess import run
 
 DATE = datetime.datetime.now().strftime("%Y-%m-%d")
 DATETIME = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-CASES_DIR =  Path("cases") / "DNS_Ra1e10" / "no_buoyancy_source" 
+CASES_DIR =  Path("cases") / "DNS_Ra1e10" / "v2f_GCI" / "no_buoyancy_source"
 SHARED_SLURM_TEMPLATE = Path("run-shared.slurm")
 
 def main():
 
     input_file = "parameters.toml"
     input_parameters = {
-        # "RASModel": ["kOmegaSST"] * 3,
-        "RASModel": ["kOmegaSST", "LaunderSharmaKE", "v2f", "laminar"],
-        # "x_bulk": [15e-3, 10e-3, 6.67e-3],
+        "RASModel": ["v2f"] * 3,
+        # "RASModel": ["kOmegaSST", "LaunderSharmaKE", "v2f", "v2fBuoyant"],
+        "x_bulk": [13.5e-3, 9e-3, 6e-3],
         # "maxCo": [0.1, 0.2, 0.4],
-        # "nDecomp": ["(2 1 2)", "(3 1 4)", "(4 1 4)"],
-        "nDecomp": ["(2 1 4)"] * 4,
+        "nDecomp": ["(2 1 2)", "(3 1 4)", "(4 1 4)"],
+        # "nDecomp": ["(2 1 4)"] * 4,
         "LTS": [False] * 4,
         "bSource": [False] * 4,
-        # "THFM": ["GGDH"] * 4,
+        "THFM": ["GGDH"] * 4,
     }
-    N_sim = 4 # Must equatl the number of elements in the list(s) above
+    N_sim = 3 # Must equatl the number of elements in the list(s) above
 
     var_params = [k for k, v in input_parameters.items() if isinstance(v, list)]
     input_dict = toml.load(input_file)
     cases = []
-    n_processors = ["8"] * 4 #, "4", "8", "12"]
-    # n_processors = ["4", "12", "16"]
+    # n_processors = ["8"] * 4 #, "4", "8", "12"]
+    n_processors = ["4", "12", "16"]
 
 
     for i in range(N_sim):

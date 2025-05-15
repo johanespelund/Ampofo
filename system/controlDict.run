@@ -39,7 +39,7 @@ writeControl    adjustableRunTime;
 
 // writeInterval   0.2;
 
-purgeWrite      9;
+purgeWrite      10;
 
 writeFormat     binary;
 
@@ -129,21 +129,40 @@ functions
 
   left_wall
   {
-    start (0 $x_mid -1e3);
-    end (0 $x_mid  1e3);
-    fields (wallHeatFlux wallHeatFluxMean);
-    axis z;
-    setFormat csv;
-    #includeEtc "caseDicts/postProcessing/graphs/graphCellFace.cfg"
-    writeControl writeTime;
-    writeInterval 1;
+    type            patchCutLayerAverage;
+    libs            ("libpatchCutLayerAverageFunctionObject.so");
+
+    writeControl    writeTime;
+    writeInterval   1;
+
+    patch           wall_left;
+    direction       (0 0 1);
+    nPoints         500;
+    interpolate     no;
+
+    fields          (wallHeatFlux wallHeatFluxMean);
+
+    axis            z;
+    setFormat       csv;
   }
 
   right_wall
   {
-    $left_wall
-    start ($x_mid $x_mid -1e3);
-    end ($x_mid $x_mid  1e3);
+    type            patchCutLayerAverage;
+    libs            ("libpatchCutLayerAverageFunctionObject.so");
+
+    writeControl    writeTime;
+    writeInterval   1;
+
+    patch           wall_right;
+    direction       (0 0 1);
+    nPoints         500;
+    interpolate     no;
+
+    fields          (wallHeatFlux wallHeatFluxMean);
+
+    axis            z;
+    setFormat       csv;
   }
 
   yPlus  // The name of the function object, can be anything you like
@@ -156,14 +175,12 @@ functions
   fieldAverage1
   {
       type                    fieldAverage;
-      libs ( "libfieldFunctionObjects.so" );
+      libs                    ( "libfieldFunctionObjects.so" );
       enabled               true;
       writeControl       writeTime;
-      timeStart             100;
-      timeEnd           $endTime;
-      restartPeriod     $restartPeriod;
+      executeAtStart    false;
+      startTime         400;
       resetOnOutput     false;
-      base              time;
           
       fields
       (

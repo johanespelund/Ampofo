@@ -16,6 +16,7 @@ class DNS:
             "marker": "o",
             "markevery": 0.02,
             "markersize": 3,
+            "markeredgewidth": 0.5,
             "markerfacecolor": "w",
             "markeredgecolor": "k",
             "color": "k",

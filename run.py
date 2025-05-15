@@ -5,6 +5,7 @@ from subprocess import run
 
 import click
 import toml
+import numpy as np
 from FoamUtils import ThermophysicalProperties, read_parameters
 
 from boundary_layer import (foam_grading, foam_grading_string,
@@ -72,7 +73,11 @@ def main(input_file=None, override=None):
         parameters["L_x"] = L
         parameters["L_y"] = L
         parameters["L_z"] = L
-    parameters["x_mid"] = L/2
+        parameters["x_wall"] *= L
+        parameters["x_bulk"] *= L
+
+    # Make sure sample line doesnt go along cell edge in case of even number of cells!
+    parameters["x_mid"] = np.round(L/2, 6)
 
     shutil.rmtree("0", ignore_errors=True)
     shutil.rmtree("postProcessing", ignore_errors=True)
@@ -154,6 +159,7 @@ def main(input_file=None, override=None):
     write_parameters(parameters, dry_run)
 
     run_command(["blockMesh >> log.blockMesh"], dry_run, shell=True)
+    run_command(["checkMesh >> log.checkMesh"], dry_run, shell=True)
 
     print(f"Created mesh of size ({n}x{n}) {parameters['nCells']} cells")
 
