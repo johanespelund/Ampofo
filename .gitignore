@@ -9,6 +9,9 @@ figures/
 dynamicCode
 **/__pycache__/
 
+# Sebilleau data
+data/SebilleauCavity/
+
 ### OpenFOAM ###
 # Timestep directories
 0.*

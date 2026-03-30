@@ -1,0 +1,173 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  12
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          functions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "$FOAM_CASE/parameters"
+
+#includeFunc residuals
+(
+  name=residuals,
+  fields=( p_rgh h Ux Uy k epsilon omega v2 f phit ebf)
+)
+
+/*fvSchemesUpdate*/
+/*{*/
+/*type            timeActivatedFileUpdate;*/
+/*libs            ("libutilityFunctionObjects.so");*/
+/**/
+/*fileToUpdate    "$FOAM_CASE/system/fvSchemes";*/
+/**/
+/*writeControl    writeTime;*/
+/*writeInterval   1;*/
+/**/
+/*fileVsTime*/
+/*(*/
+/*  (-1 "$FOAM_CASE/system/fvSchemes.0")*/
+/*  (30 "$FOAM_CASE/system/fvSchemes.30")*/
+/*);*/
+/**/
+/*}*/
+
+#includeFunc wallHeatFlux
+(
+  name=wallHeatFlux,
+  executeControl=timeStep,
+  writeFields=false
+)
+
+#includeFunc patchIntegrate
+(
+    name=Q_left,
+    patch=wall_left,
+    fields=(wallHeatFlux)
+)
+
+#includeFunc patchIntegrate
+(
+    name=Q_right,
+    patch=wall_right,
+    fields=(wallHeatFlux)
+)
+
+#includeFunc patchIntegrate
+(
+    name=Q_top,
+    patch=wall_top,
+    fields=(wallHeatFlux)
+)
+
+#includeFunc patchIntegrate
+(
+    name=Q_bottom,
+    patch=wall_bottom,
+    fields=(wallHeatFlux)
+)
+
+linesample
+{
+  type sets;
+  libs (sampling);
+  writeControl writeTime;
+  writeInterval 1;
+  interpolationScheme cellPointFace;
+  setFormat csv;
+  sets
+    (
+    vertical
+    {
+      type lineFace;
+      axis z;
+      start ($x_mid $x_mid -1e3);
+      end ($x_mid $x_mid 1e3);
+    }
+    horizontal
+    {
+      type lineFace;
+      axis x;
+      start (-1e3 $x_mid $x_mid);
+      end (1e3 $x_mid $x_mid);
+    }
+    );
+  fields (T p U rho k thermo:mu TMean UMean rhoMean kMean nutMean);
+}
+
+#includeFunc graphPatchCutLayerAverage
+(
+    name=left_wall,
+    patch=wall_left,
+    writeControl=writeTime,
+    writeInterval=1,
+    direction=(0 0 1),
+    nPoints=500,
+    fields=(wallHeatFlux wallHeatFluxMean),
+    interpolate=no,
+    axis=z,
+    setFormat=csv
+)
+
+#includeFunc graphPatchCutLayerAverage
+(
+    name=right_wall,
+    patch=wall_right,
+    writeControl=writeTime,
+    writeInterval=1,
+    direction=(0 0 1),
+    nPoints=500,
+    fields=(wallHeatFlux wallHeatFluxMean),
+    interpolate=no,
+    axis=z,
+    setFormat=csv
+)
+
+#includeFunc graphPatchCutLayerAverage
+(
+    name=top_wall,
+    patch=wall_top,
+    writeControl=writeTime,
+    writeInterval=1,
+    direction=(0 0 1),
+    nPoints=500,
+    fields=(wallHeatFlux wallHeatFluxMean),
+    interpolate=no,
+    axis=z,
+    setFormat=csv
+)
+
+#includeFunc graphPatchCutLayerAverage
+(
+    name=bottom_wall,
+    patch=wall_bottom,
+    writeControl=writeTime,
+    writeInterval=1,
+    direction=(0 0 1),
+    nPoints=500,
+    fields=(wallHeatFlux wallHeatFluxMean),
+    interpolate=no,
+    axis=z,
+    setFormat=csv
+)
+
+#includeFunc yPlus
+
+#includeFunc fieldAverage
+(
+    name=fieldAverage1,
+    fields=( T U k p nut wallHeatFlux wallShearStress rho Pb Pk epsilon ),
+    writeControl=writeTime,
+    startTime=400,
+    exectuteAtStart=false,
+    resetOnOutput=false
+)
+

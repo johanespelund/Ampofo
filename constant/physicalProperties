@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    specie          specie;
+
+    // equationOfState perfectGas;
+    // energy          sensibleEnthalpy;
+    // thermo          hConst;
+
+    equationOfState Boussinesq;
+    energy          sensibleInternalEnergy;
+    thermo          eConst;
+
+}
+
+mixture
+{
+    specie
+    {
+        nMoles          1;
+        molWeight       28.96;
+    }
+    thermodynamics
+    {
+        Cp              1004.675;
+        // To enforce that kappa is the same is in perfectGas case!
+        // (Boussinesq does not differentiate between Cp and Cv)
+        Cv              $Cp; 
+        // Cv              717.625;
+        Hf              0;
+    }
+    transport
+    {
+        mu              1.8e-05;
+        Pr              0.71;
+    }
+    equationOfState
+    {
+      rho 1.164253567;
+      rho0 1.164253567;
+      T0 303.15;
+      beta 3.298697015e-3;
+    }
+}
+
+
+
+
+
+// ************************************************************************* //
+

@@ -29,8 +29,36 @@ RAS
 
   buoyantKEpsilonCoeffs
   {
-    Cg 1.176470588; // Corresponds to Prt = 0.85 (Cg = 1/Prt)
+    Cg $Cg; // Corresponds to Prt = 0.90 (Cg = 1/Prt)
   }
+  phitfBuoyantCoeffs
+  {
+    Cg $Cg;
+    THFM  $THFM;
+    kEqnSource true;
+    epsEqnSource true;
+    phitEqnSource false;
+    fEqnSource false;
+  }
+  v2fBuoyantCoeffs
+  {
+    Cg $Cg;
+    THFM  $THFM;
+    kEqnSource true;
+    epsEqnSource true;
+    v2EqnSource true;
+    fEqnSource false;
+  }
+  kEpsilonEBCoeffs
+  {
+    Cg $Cg;
+    THFM  $THFM;
+    // kEqnSource true;
+    // epsEqnSource true;
+    // v2EqnSource true;
+    // fEqnSource true;
+  }
+
 }
 
 // ************************************************************************* //

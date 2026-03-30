@@ -38,7 +38,8 @@ boundaryField
 
     "wall.*"
     {
-        type            compressible::alphatWallFunction;
+        // type            compressible::alphatWallFunction;
+        type            compressible::alphatJayatillekeWallFunction;
         Prt             0.85;
         value           $internalField;
     }

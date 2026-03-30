@@ -26,7 +26,8 @@ boundaryField
     }
     bottom
     {
-        type            nutUWallFunction;
+        type            nutUSpaldingWallFunction;
+        // type            nutUWallFunction;
         value           $internalField;
     }
 
@@ -38,7 +39,8 @@ boundaryField
 
     "wall.*"
     {
-        type            nutUWallFunction;
+        type            nutUSpaldingWallFunction;
+        // type            nutUWallFunction;
         value           $internalField;
     }
     pipe

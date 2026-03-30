@@ -18,10 +18,10 @@ FoamFile
 
 ddtSchemes
 {
-    // default Euler;
+    /*default backward;*/
     // default         localEuler;
     // default         steadyState;
-    // default         CrankNicolson 0.5;
+    /*// default         CrankNicolson 0.5;*/
     default         backward;
 }
 
@@ -29,22 +29,25 @@ gradSchemes
 {
   default  Gauss linear;
   // grad(h)  cellLimited Gauss linear 1;
-  // grad(k) cellMDLimited Gauss linear 1;
-  // grad(omega) cellMDLimited Gauss linear 1;
+  /*grad(k) cellMDLimited Gauss linear 1;*/
+  /*grad(epsilon) cellMDLimited Gauss linear 1;*/
+  /*grad(f) cellMDLimited Gauss linear 1;*/
+  /*grad(v2) cellMDLimited Gauss linear 1;*/
+  /*grad(omega) cellMDLimited Gauss linear 1;*/
   // grad(h) cellMDLimited Gauss linear 0.5;
 }
 
 divSchemes
 {
-    default         Gauss linear;
+    default         none;
     div(phi,U)      Gauss limitedLinearV 1;
     div(phi,h)      Gauss limitedLinear 1;
     div(phi,e)      Gauss limitedLinear 1;
     div(phi,K)      Gauss limitedLinear 1;
     div(meshPhi,p)  Gauss linear;
-    // turbulence      Gauss upwind;
-    turbulence      Gauss limitedLinear 1;
-    // turbulence      Gauss linearUpwind grad(k);
+    turbulence      Gauss upwind;
+    /*turbulence      Gauss limitedLinear 1;*/
+    /*turbulence      Gauss linearUpwind grad(k);*/
     div(phi,k)      $turbulence;
     div(phi,omega)  $turbulence;
     div(phi,epsilon) $turbulence;
@@ -56,8 +59,6 @@ divSchemes
     div(phi,(p|rho))  Gauss limitedLinear 1;
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
 }
-
-gradLimiter 1;
 
 laplacianSchemes
 {

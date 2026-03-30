@@ -1,115 +1,158 @@
 import datetime
+import glob
+import shutil
 from subprocess import run
-import shutil, glob
 
 import click
+import toml
+import numpy as np
+from FoamUtils import ThermophysicalProperties, read_parameters
 
 from boundary_layer import (foam_grading, foam_grading_string,
-                            replace_blocks_content,
-                            write_blocks_to_parameters)
-from FoamUtils import ThermophysicalProperties as tp
-from FoamUtils import read_parameters
+                            replace_blocks_content, write_blocks_to_parameters)
 
 g = 9.81
 
+
 def run_command(command, dry_run=False, shell=False):
     if dry_run:
-        print(f"Dry-run: Would execute command: {' '.join(command) if isinstance(command, list) else command}")
+        print(
+            f"Dry-run: Would execute command: {' '.join(command) if isinstance(command, list) else command}"
+        )
     else:
         run(command, shell=shell)
 
 
-@click.command()
-@click.option("--turbulence", "-t", is_flag=True, help="Include turbulence model")
-@click.option('--highRe', is_flag=True, help="Run simulation with high-Re turbulent boundary conditions")
-@click.option("--model", "-m", default="kOmegaSST", help="Turbulence model")
-@click.option("--buoyancy-source", "-b", is_flag=True, help="Include buoyancy source term")
-@click.option("--x-wall", default=0.1e-3, help="Wall cell size")
-@click.option("--x-bulk", default=0.005, help="Bulk cell size")
-@click.option("--n-processors", "-np", default=1, help="Number of processors")
-@click.option("--decomp-method", "-d", default="scotch", type=click.Choice(["simple", "scotch", "hierarchical"]), help="Decomposition method")
-@click.option("--n-decomp", "-n", default="(1 1 1)", help="Coeffs for simple and hierarchical decomposition")
-@click.option("--config-file", "-c", default="", help="Configuration file")
-@click.option("--dry-run", is_flag=True, help="Print actions without modifying the system")
-@click.option("--yes-clean", "-y", is_flag=True, help="Skip confirmation and clean the system")
-def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processors, decomp_method, n_decomp, config_file, dry_run, yes_clean):
+def main(input_file=None, override=None):
     """
     Set up OpenFOAM case for simulating experiment by Ampofo & Karayiannis (2003)
     doi: 10.1016/S0017-9310(03)00147-9
     """
-    parameters = {
-        "L_x": 0.75,
-        "L_y": 0.75,
-        "L_z": 0.75,
-        "x_wall": x_wall,
-        "x_bulk": x_bulk,
+    parameters = {  # Default parameters
+        "x_wall": 0.5e-3,
+        "x_bulk": 15e-3,
         "r": 1.05,
-        "highRe": highre,
-        "bSource": buoyancy_source,
-        "turbulence": turbulence,
-        "RASModel":model,
+        "highRe": False,
+        "bSource": False,
+        "RASModel": "laminar",
         "p_outlet": 101325,
-        "n_processors": n_processors,
-        "decompMethod": decomp_method,
-        "nDecomp": n_decomp,
+        "n_processors": 1,
+        "decompMethod": "simple",
+        "nDecomp": "(2 1 2)",
+        "THFM": "GGDH",
+        "Prt":0.85,
+        "consistent": True,
+        "nOuterCorrectors": 1,
     }
+    dry_run = False
 
-    a = False
-    if dry_run:
-        print("Dry-run mode enabled. No system changes will be made.")
-    elif not yes_clean:
-        a = input("This will overwrite the current system. Are you sure you want to continue? (y/n): ")
-        a = a.lower() == "y"
-    if a or yes_clean:
-        shutil.rmtree("0", ignore_errors=True)
-        shutil.rmtree("postProcessing", ignore_errors=True)
-        run_command(["foamListTimes", "-rm"], dry_run)
-        for processor in glob.glob("processor*"):
-            shutil.rmtree(processor, ignore_errors=True)
+    if input_file:
+        parameters.update(toml.load(input_file))
+    if override:
+        parameters.update(override)
+
+    LH2 = parameters["fluid"] == "H2"
+
+    if LH2:
+        parameters["L_x"] = 0.09057
+        parameters["L_y"] = 0.09057
+        parameters["L_z"] = 0.09057
+        parameters["T_right"] = 20
+        parameters["T_left"] = 30
+        parameters["M"] = 2.01588
+        parameters["horizontalHeatType"] = "zeroGradient"
     else:
-        print("Exiting without making any changes")
-        return
-        
+        parameters["L_x"] = 0.75
+        parameters["L_y"] = 0.75
+        parameters["L_z"] = 0.75
+        parameters["T_right"] = 283.15 # + 19.5
+        parameters["T_left"] = 323.15 # - 19.5
+        parameters["M"] = 28.96
+        parameters["horizontalHeatType"] = "fixedValue"
+    parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"]) / 2
 
-    parameters["T_right"] = 283.15
-    parameters["T_left"] = 323.15
-    parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"])/2
-    parameters["M"] = 28.96
+    if parameters["Ra"]:
+        L = calc_L_from_Ra(parameters)
+        parameters["L_x"] = L
+        parameters["L_y"] = L
+        parameters["L_z"] = L
+        parameters["x_wall"] *= L
+        parameters["x_bulk"] *= L
 
-    if config_file:
-        print("Reading parameters from", config_file)
-        parameters.update(read_parameters(config_file))
+    if parameters["consistent"]:
+        parameters["consistent"] = "true"
+    else:
+        parameters["consistent"] = "false"
+
+
+    # Make sure sample line doesnt go along cell edge in case of even number of cells!
+    parameters["x_mid"] = np.round(L/2, 6)
 
     run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
+    shutil.rmtree("0", ignore_errors=True)
+    shutil.rmtree("postProcessing", ignore_errors=True)
+    run_command(["foamListTimes", "-rm"], dry_run)
+    for processor in glob.glob("processor*"):
+        shutil.rmtree(processor, ignore_errors=True)
 
-    T0 = parameters["T_avg"]
-    thermo = tp.ThermophysicalProperties("constant/thermophysicalProperties")
-    cp = thermo.Cp(T0)
-    mu = thermo.mu(T0)
-    kappa = thermo.kappa(T0)
-    beta = thermo.beta(parameters["p_outlet"], T0)
-    Pr = thermo.Pr(T0)
-    rho = thermo.rho(parameters["p_outlet"], T0)
-    L = parameters["L_x"]
-    deltaT = parameters["T_left"] - parameters["T_right"]
+    if parameters["LTS"]:
+        parameters.update(
+            {
+                "endTime": 50000,
+                "writeInterval": 1000,
+                "deltaT": 1,
+                "adjustTimeStep": "no",
+                "ddtScheme": "localEuler",
+                "restartPeriod": 10000,
+            }
+        )
+    else:
+        parameters.update(
+            {
+                "endTime": 150 if LH2 else 800,
+                "writeInterval": 30 if LH2 else 100,
+                "deltaT": 1e-6 if LH2 else 1e-4,
+                "adjustTimeStep": "yes",
+                # "ddtScheme": "Euler",
+                "ddtScheme": "backward",
+                # "ddtScheme": "CrankNicolson 0.7",
+                "restartPeriod": 30 if LH2 else 200,
+            }
+        )
 
-    Ra = Pr*g*beta*rho**2*deltaT*L**3/(mu**2)
-    print(f"Rayleigh number: {Ra: .4e}")
 
-    if parameters["bSource"]:
+    if parameters["bSource"] and parameters["RASModel"] not in [
+        "v2fBuoyant",
+        "buoyantKEpsilon",
+        "phitfBuoyant",
+        # "kEpsilonEB"
+    ]:
         run_command(["cp", "constant/fvModels.bSource", "constant/fvModels"], dry_run)
         print("Buoyancy source term is included")
     else:
         run_command(["rm", "-f", "constant/fvModels"], dry_run)
-        print("Buoyancy source term is not included")
+        print("Buoyancy source term is not included (or already in model)")
 
-    if not parameters["turbulence"] or parameters["turbulence"] == "laminar":
+    parameters["Cg"] = 1 / parameters["Prt"]
+
+    if parameters["RASModel"] == "phitfBuoyant" and parameters["bSource"] == False:
+        run_command(["rm", "-f", "constant/fvModels"], dry_run)
+        parameters["Cg"] = 0
+        print("Using phitBuoyant without Pb (Cg = 0)")
+
+
+    if parameters["bSource"] and parameters["RASModel"] == "v2f":
+        parameters["RASModel"] = "v2fBuoyant"
+        run_command(["rm", "-f", "constant/fvModels"], dry_run)
+        print("Using v2f with bSource: Switching to v2fBuoyant")
+
+    if parameters["RASModel"] == "laminar":
         parameters["simulationType"] = "laminar"
         parameters["turbulence"] = "false"
-        parameters["RASModel"] = "laminar"
     else:
         parameters["simulationType"] = "RAS"
         parameters["turbulence"] = "true"
+
 
     grading_params = foam_grading(
         parameters["L_x"], parameters["x_wall"], parameters["x_bulk"], parameters["r"]
@@ -118,15 +161,28 @@ def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processor
 
     v_string = f"hex (0 1 2 3 4 5 6 7)"
     n_string = f"({n} 1 {n}) // x_wall: {parameters['x_wall']} x_bulk: {parameters['x_bulk']} r: {parameters['r']}"
-    grading_string = f"(\n\t\t\t\t\t{grading}\n\t\t\t\t\t1\n\t\t\t\t\t{grading}\n\t\t\t\t)"
+    grading_string = (
+        f"(\n\t\t\t\t\t{grading}\n\t\t\t\t\t1\n\t\t\t\t\t{grading}\n\t\t\t\t)"
+    )
     write_blocks_to_parameters(parameters, v_string, n_string, grading_string, dry_run)
 
-    parameters["nCells"] = int(n)**2
+    parameters["nCells"] = int(n) ** 2
     parameters["date"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    parameters[
+        "variables"
+    ] = f"""
+        (
+            "x=pos().x()"
+            "Tleft={parameters['T_left']}"
+            "Tright={parameters['T_right']}"
+            "L={parameters['L_x']}"
+        )
+    """
 
     write_parameters(parameters, dry_run)
 
     run_command(["blockMesh >> log.blockMesh"], dry_run, shell=True)
+    run_command(["checkMesh >> log.checkMesh"], dry_run, shell=True)
 
     print(f"Created mesh of size ({n}x{n}) {parameters['nCells']} cells")
 
@@ -134,7 +190,25 @@ def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processor
     run_command(["rm", "-rf", "0"], dry_run)
     run_command(["cp", "-r", "0-orig", "0"], dry_run)
     run_command(["rm", "-rf", "postProcessing"], dry_run)
-    run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+    if not LH2:
+        # print("Setting up initial conditions")
+        # print(f"Using {parameters['horizontalBC']} top and bottom temperature.")
+        # run_command(
+        #     [
+        #         f"setExprBoundaryFields -dict system/setExprBoundaryFieldsDict.{parameters['horizontalBC']} >> log.setExprBoundaryFields"
+        #     ],
+        #     dry_run,
+        #     shell=True,
+        # )
+        for l, v in (["T_LEFT", "T_left"], ["T_RIGHT", "T_right"], ["L", "L_x"]):
+            run_command(["sed", "-i", f"s|<{l}>|{parameters[v]}|", "0/T"])
+
+        # if parameters["horizontalBC"] == "experimental":
+        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+        # elif parameters["horizontalBC"] == "linear":
+        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
+        # else:
+        #     raise ValueError("Invalid horizontal boundary condition")
 
     if parameters["highRe"]:
         run_command("cp highReBC/* 0/", dry_run, shell=True)
@@ -143,8 +217,8 @@ def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processor
         run_command("cp lowReBC/* 0/", dry_run, shell=True)
         print("Using low-Re turbulent boundary conditions")
 
-    if parameters["n_processors"] > 1:
-        run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
+    # if parameters["n_processors"] > 1:
+    #     run_command(["decomposePar >> log.decomposePar"], dry_run, shell=True)
 
     run_command(["cp", "system/controlDict.run", "system/controlDict"], dry_run)
 
@@ -152,12 +226,44 @@ def main(turbulence, highre, model, buoyancy_source, x_wall, x_bulk, n_processor
 
 
 def write_parameters(parameters, dry_run=False):
-    with open("parameters"+".dry-run"*dry_run, "w") as f:
+    with open("parameters" + ".dry-run" * dry_run, "w") as f:
         for key, value in parameters.items():
             if key not in ["date"]:
                 f.write(f"{key} {value};\n")
 
 
-if __name__ == "__main__":
-    main()
+def calc_L_from_Ra(parameters):
+    thermo = ThermophysicalProperties("constant/thermophysicalProperties")
+    p = parameters
 
+    beta = thermo.beta(p["p_outlet"], p["T_avg"])
+    Pr = thermo.Pr(p["T_avg"])
+    nu = thermo.mu(p["T_avg"]) / thermo.rho(p["p_outlet"], p["T_avg"])
+    DeltaT = abs(p["T_left"] - p["T_right"])
+
+    # Ra = Pr*Gr = Pr*g*beta*DeltaT*L**3/(nu**2)
+    # L = (Ra*nu**2/(Pr*g*beta*DeltaT))**(1/3)
+    L = ((p["Ra"] * nu**2) / (Pr * g * beta * DeltaT)) ** (1 / 3)
+    print(f"Calculated L: {L} m")
+    Ra = Pr * g * beta * DeltaT * L**3 / (nu**2)
+
+    if abs(Ra - p["Ra"]) / Ra > 1e-6:
+        raise ValueError(f"Calculated Ra {Ra} does not match input Ra {p['Ra']}")
+    return L
+
+
+@click.command()
+@click.option("--input-file", "-i", help="Input file")
+@click.option(
+    "--override",
+    "-o",
+    nargs=2,
+    multiple=True,
+    help="Override specific parameters from the input file in 'key value' pairs.",
+)
+def main_click(input_file, override):
+    main(input_file, dict(override))
+
+
+if __name__ == "__main__":
+    main_click()

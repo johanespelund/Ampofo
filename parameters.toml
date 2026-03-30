@@ -1,0 +1,24 @@
+fluid = "air" # "air"
+horizontalBC = "linear"
+Ra = 1e10
+
+# Grid parameters 
+# x is normalised by L if Ra is specified
+x_wall = 0.25e-3  
+x_bulk = 4e-3    
+r = 1.05
+
+# Turbulence parameters
+RASModel = "v2f"
+bSource = true
+highRe = false
+THFM = "SGDH"
+Prt = 0.85
+
+# Simulation parameters
+LTS = false
+maxCo = 0.5
+decompMethod = "simple"
+nDecomp = "(5 1 5)"
+n_processors = 25
+

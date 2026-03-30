@@ -10,48 +10,21 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    object      alphat;
+    object      ebf;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [ 1 -1 -1 0 0 0 0 ];
+dimensions      [ 0 0 0 0 0 0 0 ];
 
-internalField   uniform 0;
-
-#include "$FOAM_CASE/parameters"
+internalField   uniform 1;
 
 boundaryField
 {
-    "empty.*"
-    {
-        type        empty;
-    }
-    bottom
-    {
-        type            calculated;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            calculated;
-        value           $internalField;
-    }
-
     "wall.*"
     {
-        type            compressible::alphatWallFunction;
-        Prt             $Prt;
-        value           $internalField;
+        type            fixedValue;
+        value           uniform 0;
     }
-    "wedge.*"
-    {
-        type wedge;
-    }
-      pipe
-  {
-        $wall;
-      }
     "proc.*"
     {
       type processor;

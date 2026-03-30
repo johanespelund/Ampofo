@@ -14,6 +14,13 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+libs
+(
+  "libbuoyancyTurbSourceFvModels.so"
+  "libcompressibleBuoyantMomentumTransportModels.so"
+  "libmycompressibleTurbulenceModels.so"
+);
+
 
 #include "../parameters"
 
@@ -25,15 +32,15 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         400;
+// endTime         20000;
 
-deltaT          1e-4;
+// deltaT          1;
 
 writeControl    adjustableRunTime;
 
-writeInterval   1;
+// writeInterval   0.2;
 
-purgeWrite      9;
+purgeWrite      10;
 
 writeFormat     binary;
 
@@ -47,152 +54,187 @@ timePrecision   9;
 
 runTimeModifiable true;
 
-adjustTimeStep  yes;
+// adjustTimeStep  yes;
 
-maxCo           0.5;
+// maxCo           0.5;
 
-maxDeltaT       3600;
+// maxDeltaT       3600;
 
-functions
-{
-  #includeFunc solverInfo
-  wallHeatFlux
-  {
-    #includeEtc "caseDicts/postProcessing/fields/wallHeatFlux"
-    executeControl timeStep;
-    executeInterval 1;
-    writeControl writeTime;
-    writeInterval 1;
-  }
-  Q_left
-  {
-    #includeEtc "caseDicts/postProcessing/surfaceFieldValue/patch.cfg"
-    patch wall_left;
-    name $patch;
-    fields (wallHeatFlux);
-    operation areaIntegrate;
-  }
-  Q_right { $Q_left; name wall_right; }
-  Q_top { $Q_left; name wall_top; }
-  Q_bottom { $Q_left; name wall_bottom; }
-
-  linesample
-  {
-    type sets;
-    libs (sampling);
-    writeControl writeTime;
-    writeInterval 1;
-    interpolationScheme cellPointFace;
-    setFormat csv;
-    sets
-      (
-      vertical
-      {
-        type face;
-        axis z;
-        start (#calc " 0.5*$L_x" #calc "0.5*$L_y" -1e3);
-        end (#calc " 0.5*$L_x " #calc " 0.5*$L_y" 1e3);
-      }
-      horizontal
-      {
-        type face;
-        axis x;
-        start (-1e3 #calc "0.5*$L_y" #calc "0.5*$L_z");
-        end (1e3 #calc "0.5*$L_y" #calc "0.5*$L_z");
-      }
-      );
-    fields (T p U rho thermo:mu TMean UMean rhoMean kMean nutMean);
-  }
-
-  left_wall
-  {
-    setConfig {type face; axis z;}
-    start (0 #calc "0.5*$L_y" -1e3);
-    end (0 #calc "0.5*$L_y"  1e3);
-    fields (wallHeatFlux wallHeatFluxMean);
-    axis z;
-    setFormat csv;
-    writeControl writeTime;
-    writeInterval 1;
-    #includeEtc "caseDicts/postProcessing/graphs/graph.cfg"
-  }
-
-  right_wall
-  {
-    start ($L_x #calc "0.5*$L_y" -1e3);
-    end ($L_x #calc "0.5*$L_y"  1e3);
-    $left_wall
-  }
-
-  yPlus  // The name of the function object, can be anything you like
-  {
-    type            yPlus;         // Specifies that this function object calculates yPlus
-    libs            ("libfieldFunctionObjects.so");  // The library to load
-    writeControl    writeTime;     // When to write the yPlus data, e.g., every time step ('timeStep') or based on the write interval ('writeTime')
-    log             true;          // Output yPlus values to the standard output (log)
-  }
-  fieldAverage1
-  {
-      type                    fieldAverage;
-      libs ( "libfieldFunctionObjects.so" );
-      enabled               true;
-      writeControl       writeTime;
-      timeStart             150;
-      timeEnd           $endTime;
-      resetOnOutput     false;
-          
-      fields
-      (
-          U
-          {
-              mean           on;
-              prime2Mean  on;
-              base           time;
-          }
-          T
-          {
-              mean           on;
-              prime2Mean  on;
-              base           time;
-          }
-          rho
-          {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          }
-          nut
-          {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          }
-          wallHeatFlux
-          {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          }
-          wallShearStress
-          {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          }
-          k
-          {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          }
-          p
-         {
-              mean           on;
-              prime2Mean  off;
-              base           time;
-          } 
-      );
-  }
-}
+// functions
+// {
+//   #includeFunc residuals(p_rgh,h,Ux,Uy,k,epsilon,omega)
+//   fvSchemesUpdate
+//   {
+//   type            timeActivatedFileUpdate;
+//   libs            ("libutilityFunctionObjects.so");
+//
+//   fileToUpdate    "$FOAM_CASE/system/fvSchemes";
+//
+//   writeControl    writeTime;
+//   writeInterval   1;
+//
+//   fileVsTime
+//   (
+//     (-1 "$FOAM_CASE/system/fvSchemes.0")
+//     (30 "$FOAM_CASE/system/fvSchemes.30")
+//   );
+//
+//   }
+//
+//   wallHeatFlux
+//   {
+//     #includeEtc "caseDicts/postProcessing/fields/wallHeatFlux"
+//     executeControl timeStep;
+//     executeInterval 1;
+//     writeControl writeTime;
+//     writeInterval 1;
+//   }
+//   Q_left
+//   {
+//     #includeEtc "caseDicts/postProcessing/surfaceFieldValue/patchValue.cfg"
+//     patch wall_left;
+//     fields (wallHeatFlux);
+//     operation areaIntegrate;
+//   }
+//   Q_right { $Q_left; patch wall_right; }
+//   Q_top { $Q_left; patch wall_top; }
+//   Q_bottom { $Q_left; patch wall_bottom; }
+//
+//   linesample
+//   {
+//     type sets;
+//     libs (sampling);
+//     writeControl writeTime;
+//     writeInterval 1;
+//     interpolationScheme cellPointFace;
+//     setFormat csv;
+//     sets
+//       (
+//       vertical
+//       {
+//         type lineFace;
+//         axis z;
+//         start ($x_mid $x_mid -1e3);
+//         end ($x_mid $x_mid 1e3);
+//       }
+//       horizontal
+//       {
+//         type lineFace;
+//         axis x;
+//         start (-1e3 $x_mid $x_mid);
+//         end (1e3 $x_mid $x_mid);
+//       }
+//       );
+//     fields (T p U rho k thermo:mu TMean UMean rhoMean kMean nutMean);
+//   }
+//
+//   left_wall
+//   {
+//     type            patchCutLayerAverage;
+//     libs            ("libpatchCutLayerAverageFunctionObject.so");
+//
+//     writeControl    writeTime;
+//     writeInterval   1;
+//
+//     patch           wall_left;
+//     direction       (0 0 1);
+//     nPoints         500;
+//     interpolate     no;
+//
+//     fields          (wallHeatFlux wallHeatFluxMean);
+//
+//     axis            z;
+//     setFormat       csv;
+//   }
+//
+//   right_wall
+//   {
+//     type            patchCutLayerAverage;
+//     libs            ("libpatchCutLayerAverageFunctionObject.so");
+//
+//     writeControl    writeTime;
+//     writeInterval   1;
+//
+//     patch           wall_right;
+//     direction       (0 0 1);
+//     nPoints         500;
+//     interpolate     no;
+//
+//     fields          (wallHeatFlux wallHeatFluxMean);
+//
+//     axis            z;
+//     setFormat       csv;
+//   }
+//
+//   yPlus  // The name of the function object, can be anything you like
+//   {
+//     type            yPlus;         // Specifies that this function object calculates yPlus
+//     libs            ("libfieldFunctionObjects.so");  // The library to load
+//     writeControl    writeTime;     // When to write the yPlus data, e.g., every time step ('timeStep') or based on the write interval ('writeTime')
+//     log             true;          // Output yPlus values to the standard output (log)
+//   }
+//   fieldAverage1
+//   {
+//       type                    fieldAverage;
+//       libs                    ( "libfieldFunctionObjects.so" );
+//       enabled               true;
+//       writeControl       writeTime;
+//       executeAtStart    false;
+//       startTime         400;
+//       resetOnOutput     false;
+//
+//       fields
+//       (
+//           U
+//           {
+//               mean           on;
+//               prime2Mean  on;
+//               base           time;
+//           }
+//           T
+//           {
+//               mean           on;
+//               prime2Mean  on;
+//               base           time;
+//           }
+//           rho
+//           {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           }
+//           nut
+//           {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           }
+//           wallHeatFlux
+//           {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           }
+//           wallShearStress
+//           {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           }
+//           k
+//           {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           }
+//           p
+//          {
+//               mean           on;
+//               prime2Mean  off;
+//               base           time;
+//           } 
+//       );
+//   }
+// }
 
 // ************************************************************************* //

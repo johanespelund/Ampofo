@@ -14,6 +14,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+#include "../parameters"
+
 solvers
 {
     "rho.*"
@@ -27,17 +29,21 @@ solvers
     {
         solver          PBiCGStab;
         preconditioner  DIC;
-        tolerance       1e-8;
+        tolerance       1e-20;
         relTol          0.0;
-        // minIter        1;
+        minIter        1;
     }
 
     "(p_rgh|cellDisplacement)"
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-10;
-        relTol          0.01;
+        tolerance       1e-20;
+        relTol          0.0;
+        // solver          GAMG;
+        // smoother        DIC;
+        // tolerance       1e-6;
+        // relTol          0.01;
     }
 
     p_rghFinal
@@ -46,16 +52,16 @@ solvers
         relTol          0;
     }
 
-    "(U|h|e|k|v2|epsilon|R|omega|gammaInt|phit)"
+    "(U|h|e|k|phit|v2|epsilon|R|omega|gammaInt|ReThetat)"
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-8;
-        relTol          0.01;
+        tolerance       1e-20;
+        relTol          0.0;
         minIter        1;
     }
 
-    "(U|h|e|k|v2|epsilon|R|omega|gammaInt|phit)Final"
+    "(U|h|e|k|phit|v2|epsilon|R|omega|gammaInt|ReThetat)Final"
     {
         $U;
         relTol          0;
@@ -68,33 +74,49 @@ solvers
     //     relTol          0.0;
     //     minIter        1;
     // }
+    pcorr
+    {
+      $p_rgh;
+    }
+        "ebf.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-20;
+        relTol          0.0;
+    }
 
 }
 
 PIMPLE
 {
     momentumPredictor   yes;
-    nOuterCorrectors    1;
+    nOuterCorrectors    $nOuterCorrectors;
     nCorrectors         3;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 0;
     pRefCell            0;
-    pRefValue           1e5;
+    pRefValue           101325;
     ddtCorr             true;
     turbOnFinalIterOnly false;
+    // maxCo              $maxCo;
+    // maxDeltaT          10;
+    rDeltaTSmoothingCoeff 0.05;
+    rDeltaTDampingCoeff 1;
+    consistent $consistent;
 
-    // residualControl
-    // {
-    //     // h
-    //     // {
-    //     //     tolerance       1e-4;
-    //     //     relTol          0;
-    //     // }
-    //     p_rgh
-    //     {
-    //         tolerance       1e-8;
-    //         relTol          0;
-    //     }
-    // }
+      outerCorrectorResidualControl
+      {
+          "(p_rgh|e|h)"
+          {
+              tolerance       1e-3;
+              relTol          0;
+          }
+          U
+          {
+            tolerance 1e-2;
+            relTol    0;
+          }
+      }
 
 }
 
@@ -102,17 +124,13 @@ relaxationFactors
 {
   fields
   {
-    p_rgh 0.3;
-    // rho   0.7;
-    "(p_rgh|rho)Final" 1;
-    // ".*Final" 1;
+    ".*" 1;
   }
   equations
   {
-    U   0.7;
-    h   0.2;
-    k   0.1;
-    epsilon 0.1;
-    "(h|e|U|T|k|epsilon)Final" 1;
+    U   0.9;
+    "(h|e)"   1;
+    "(k|epsilon|omega|phit|v2|f|ebf)" 0.8;
+    ".*Final" 1;
   }
 }

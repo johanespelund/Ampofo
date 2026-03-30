@@ -26,11 +26,98 @@ boundaryField
     wall_top
     {
         type fixedValue;
-        value uniform $T_avg;
+        value #codeStream
+        {
+            codeInclude
+            #{
+                #include "volFields.H"
+            #};
+
+            codeOptions
+            #{
+                -I$(LIB_SRC)/finiteVolume/lnInclude \
+            #};
+
+            code
+            #{
+                const IOdictionary& d = static_cast<const IOdictionary&>(dict.parent().parent());
+                const fvMesh& mesh = refCast<const fvMesh>(d.db());
+
+                word patch_label = "wall_top";
+                label patchi = mesh.boundaryMesh().findIndex(patch_label);
+
+                if (patchi == -1)
+                {
+                    FatalErrorInFunction
+                        << "Patch '" << patch_label << "' not found in mesh."
+                        << exit(FatalError);
+                }
+
+                const polyPatch& patch = mesh.boundaryMesh()[patchi];
+
+                scalarField T(patch.size(), 0.0);
+
+                const scalar T_left = <T_LEFT>;
+                const scalar T_right = <T_RIGHT>;
+                const scalar L = <L>;
+
+                forAll(T, i)
+                {
+                    const scalar x = patch.faceCentres()[i].x();
+                    T[i] = T_left + x*(T_right - T_left)/L;
+                }
+
+                writeEntry(os, "", T);
+            #};
+        };
     }
     wall_bottom
     {
-      $wall_top;
+        type fixedValue;
+        value #codeStream
+        {
+            codeInclude
+            #{
+                #include "volFields.H"
+            #};
+
+            codeOptions
+            #{
+                -I$(LIB_SRC)/finiteVolume/lnInclude \
+            #};
+
+            code
+            #{
+                const IOdictionary& d = static_cast<const IOdictionary&>(dict.parent().parent());
+                const fvMesh& mesh = refCast<const fvMesh>(d.db());
+
+                word patch_label = "wall_bottom";
+                label patchi = mesh.boundaryMesh().findIndex(patch_label);
+
+                if (patchi == -1)
+                {
+                    FatalErrorInFunction
+                        << "Patch '" << patch_label << "' not found in mesh."
+                        << exit(FatalError);
+                }
+
+                const polyPatch& patch = mesh.boundaryMesh()[patchi];
+
+                scalarField T(patch.size(), 0.0);
+
+                const scalar T_left = <T_LEFT>;
+                const scalar T_right = <T_RIGHT>;
+                const scalar L = <L>;
+
+                forAll(T, i)
+                {
+                    const scalar x = patch.faceCentres()[i].x();
+                    T[i] = T_left + x*(T_right - T_left)/L;
+                }
+
+                writeEntry(os, "", T);
+            #};
+        };
     }
     "proc.*"
     {

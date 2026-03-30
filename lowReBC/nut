@@ -27,7 +27,7 @@ boundaryField
 
     "wall.*"
     {
-        type            nutLowReWallFunction;
+        type            nutUSpaldingWallFunction;
         value           $internalField;
     }
     "proc.*"

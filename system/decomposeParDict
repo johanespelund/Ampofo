@@ -22,8 +22,8 @@ method              $decompMethod;
 
 
 // Optional decomposition constraints
-//constraints
-//{
+constraints
+{
 //    preserveBaffles
 //    {
 //        //- Keep owner and neighbour of baffles on same processor (i.e.
@@ -58,13 +58,13 @@ method              $decompMethod;
 //        type    singleProcessorFaceSets;
 //        singleProcessorFaceSets ((f1 -1));
 //    }
-//    refinementHistory
-//    {
-//        //- Decompose cells such that all cell originating from single cell
-//        //  end up on same processor
-//        type    refinementHistory;
-//    }
-//}
+   refinementHistory
+   {
+       //- Decompose cells such that all cell originating from single cell
+       //  end up on same processor
+       type    refinementHistory;
+   }
+}
 
 
 // Deprecated form of specifying decomposition constraints:
@@ -105,28 +105,28 @@ method              $decompMethod;
 // method          multiLevel;
 // method          structured;  // does 2D decomposition of structured mesh
 
-multiLevelCoeffs
-{
-    // Decomposition methods to apply in turn. This is like hierarchical but
-    // fully general - every method can be used at every level.
+//multiLevelCoeffs
+//{
+//    // Decomposition methods to apply in turn. This is like hierarchical but
+//    // fully general - every method can be used at every level.
 
-    level0
-    {
-        numberOfSubdomains  64;
-        //method simple;
-        //simpleCoeffs
-        //{
-        //    n           (2 1 1);
-        //    delta       0.001;
-        //}
-        method scotch;
-    }
-    level1
-    {
-        numberOfSubdomains  4;
-        method scotch;
-    }
-}
+//    level0
+//    {
+//        numberOfSubdomains  64;
+//        //method simple;
+//        //simpleCoeffs
+//        //{
+//        //    n           (2 1 1);
+//        //    delta       0.001;
+//        //}
+//        method scotch;
+//    }
+//    level1
+//    {
+//        numberOfSubdomains  4;
+//        method scotch;
+//    }
+//}
 
 // Desired output
 
