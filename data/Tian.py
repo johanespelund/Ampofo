@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
-from scipy.optimize import curve_fit
 
 plt.style.use(["science", "grid", "no-latex"])
 

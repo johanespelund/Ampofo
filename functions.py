@@ -49,7 +49,9 @@ def time_average(filepath, time_interval, patch_name, quantity):
     values = np.array(values)
     
     # Calculate the time average using the trapezoidal rule
-    time_average_value = np.trapz(values, times) / (times[-1] - times[0])
+    if times[-1] == times[0]:
+        return values[0]
+    time_average_value = np.trapezoid(values, times) / (times[-1] - times[0])
     
     return time_average_value
 
