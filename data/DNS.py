@@ -40,7 +40,7 @@ class DNS:
         self.folder_path.parent.mkdir(parents=True, exist_ok=True)
 
         print(f"Downloading dataset from {self.url}.")
-        print(f"This might take a while, depending on your internet connection.")
+        print("This might take a while, depending on your internet connection.")
         urllib.request.urlretrieve(self.url, self.archive_path, reporthook=MyProgressBar())
         print(f"Downloaded archive to '{self.archive_path}'.\n")
 
@@ -77,7 +77,7 @@ class DNS:
         """
         path = self.dataset_path / filename
 
-            # First, parse manually to find the column names
+        # First, parse manually to find the column names
         columns = None
         with open(path, 'r') as f:
             for line in f:
@@ -97,7 +97,7 @@ class DNS:
         df = pd.read_csv(
                 path,
                 comment='*',
-                sep='\s+',
+                sep=r'\s+',
                 names=columns,
                 skiprows=29
             )

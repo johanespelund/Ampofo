@@ -40,7 +40,7 @@ def main(input_file=None, override=None):
         "decompMethod": "simple",
         "nDecomp": "(2 1 2)",
         "THFM": "GGDH",
-        "Prt":0.85,
+        "Prt": 0.85,
         "consistent": True,
         "nOuterCorrectors": 1,
     }
@@ -71,7 +71,7 @@ def main(input_file=None, override=None):
         parameters["horizontalHeatType"] = "fixedValue"
     parameters["T_avg"] = (parameters["T_right"] + parameters["T_left"]) / 2
 
-    if parameters["Ra"]:
+    if parameters.get("Ra"):
         L = calc_L_from_Ra(parameters)
         parameters["L_x"] = L
         parameters["L_y"] = L
@@ -85,8 +85,8 @@ def main(input_file=None, override=None):
         parameters["consistent"] = "false"
 
 
-    # Make sure sample line doesnt go along cell edge in case of even number of cells!
-    parameters["x_mid"] = np.round(L/2, 6)
+    # Make sure sample line doesn't go along cell edge in case of even number of cells
+    parameters["x_mid"] = np.round(parameters["L_x"] / 2, 6)
 
     run_command(["cp", "system/controlDict.setup", "system/controlDict"], dry_run)
     shutil.rmtree("0", ignore_errors=True)
@@ -191,24 +191,8 @@ def main(input_file=None, override=None):
     run_command(["cp", "-r", "0-orig", "0"], dry_run)
     run_command(["rm", "-rf", "postProcessing"], dry_run)
     if not LH2:
-        # print("Setting up initial conditions")
-        # print(f"Using {parameters['horizontalBC']} top and bottom temperature.")
-        # run_command(
-        #     [
-        #         f"setExprBoundaryFields -dict system/setExprBoundaryFieldsDict.{parameters['horizontalBC']} >> log.setExprBoundaryFields"
-        #     ],
-        #     dry_run,
-        #     shell=True,
-        # )
-        for l, v in (["T_LEFT", "T_left"], ["T_RIGHT", "T_right"], ["L", "L_x"]):
+        for l, v in [("T_LEFT", "T_left"), ("T_RIGHT", "T_right"), ("L", "L_x")]:
             run_command(["sed", "-i", f"s|<{l}>|{parameters[v]}|", "0/T"])
-
-        # if parameters["horizontalBC"] == "experimental":
-        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
-        # elif parameters["horizontalBC"] == "linear":
-        #     run_command(["setExprBoundaryFields > log.setExprBoundaryFields"], dry_run, shell=True)
-        # else:
-        #     raise ValueError("Invalid horizontal boundary condition")
 
     if parameters["highRe"]:
         run_command("cp highReBC/* 0/", dry_run, shell=True)

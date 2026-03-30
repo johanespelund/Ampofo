@@ -2,8 +2,8 @@ from run import main as run_main
 import datetime
 import toml
 import pathlib
-from pathlib import Path
 import shutil
+from pathlib import Path
 from subprocess import run
 
 DATE = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -40,17 +40,12 @@ def main():
         # "bSource": [False]*3,
         # "THFM": ["SGDH"]*3 ,
     }
-    N_sim = len(input_parameters["nDecomp"]) # Must equatl the number of elements in the list(s) above
+    N_sim = len(input_parameters["nDecomp"])  # Must equal the number of elements in the list(s) above
 
     var_params = [k for k, v in input_parameters.items() if isinstance(v, list)]
     input_dict = toml.load(input_file)
     cases = []
-    # n_processors = ["8"]*4  #, "4", "8", "12"]
-    # n_processors = ["10", "10", "12"]  #, "4", "8", "12"]
-    # n_processors = ["4", "6", "10", "12"]
-    # n_processors = ["4", "12", "16"]
     n_processors = [get_n_proc(nd) for nd in input_parameters["nDecomp"]]
-
 
     for i in range(N_sim):
         for var in var_params:

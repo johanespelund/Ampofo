@@ -46,13 +46,6 @@ def foam_grading(L, x_wall, x_bulk, r, twosided=True):
     ratio_n_bulk = n_bulk / n
     ratio_n_bl = n_bl / n
 
-    debug = False
-    if debug:
-        print(f"{n_bl=}, {l_bl=}, {expansion=}")
-        print(f"{n_bulk=}, {l_bulk=}")
-        x_bulk = l_bulk / n_bulk
-        print(f"{x_bulk=}, {x_wall=}, {x_bulk/x_wall=}")
-
     return {
         "ratio_l_bl": ratio_l_bl,
         "ratio_n_bl": ratio_n_bl,
@@ -203,45 +196,20 @@ def write_blocks_to_parameters(parameters, v_string, n_string, grading_string, d
 
 
 if __name__ == "__main__":
-    # for L in [1, 0.32, 1]:
-    #     x_wall = 1e-3
-    #     x_bulk = (10/1.5)*1e-3
-    #     r = 1.15
-    #     grading_params = foam_grading(L, x_wall, x_bulk, r)
-    #     n, grading = foam_grading_string(grading_params)
-    #     print(n)
-    #     print(grading)
-
     L = 1
     x_wall = 0.1e-3
-    x_bulk = 10.0 * 1.5**0 * 1e-3
-    x_wall = x_bulk / 1.2
+    x_bulk = 10.0 * 1e-3
     r = 1.15
     grading_params = foam_grading(L, x_wall, x_bulk, r)
     n, grading = foam_grading_string(grading_params)
 
     v_string = f"hex (0 1 2 3 4 5 6 7)"
     n_string = f"({n} 1 {n}) // x_wall: {x_wall} x_bulk: {x_bulk} r: {r}"
-    grading_string = f"(\n  {grading}\n  1\n  {grading}\n)"
+    grading_string = (
+        f"(\n  {grading}\n  1\n  {grading}\n)"
+    )
 
     print(v_string, n_string)
     print(grading_string)
 
     replace_blocks_content("system/blockMeshDict", v_string, n_string, grading_string)
-
-        ## Update system/blockMeshDict with the grading parameters
-    # Change the entries withing the blocks ( ... );
-
-    # with open("system/blockMeshDict", "r") as f:
-    #     lines = f.readlines()
-    # reading_blocks = False
-    # for i, line in enumerate(lines):
-    #     if "blocks" in line:
-    #         reading_blocks = True
-
-    #     if reading_blocks and ");" in line:
-    #         reading_blocks = False
-
-    #     if reading_blocks:
-    #         
-

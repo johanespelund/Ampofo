@@ -5,8 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
-from scipy.optimize import curve_fit
-from scipy.interpolate import splrep, splev, interp1d
+from scipy.interpolate import interp1d
 
 plt.style.use(["science", "grid", "no-latex"])
 
@@ -33,7 +32,7 @@ class Ampofo:
 
     def __post_init__(self):
         self.npload = lambda filename: np.genfromtxt(pathlib.Path(self.data_path, filename))
-        self.pdload = lambda filename: pd.read_csv(pathlib.Path(self.data_path, filename), sep="\s+")
+        self.pdload = lambda filename: pd.read_csv(pathlib.Path(self.data_path, filename), sep=r"\s+")
         self.Nu_cold = self.npload("local_nusselt_distribution.csv")[:,[0,2]]
         self.Nu_hot = self.npload("local_nusselt_distribution.csv")[:,[0,1]]
         self.phi_bottom = self.npload("horizontal_wall_temp.csv")[:,[0,2]]
@@ -190,9 +189,6 @@ class Ampofo:
         with open("system/parameters.setFields", "w") as f:
             f.write(expression_top)
             f.write(expression_bottom)
-
-def logistic(x, L=1, x_0=0, k=1):
-    return L / (1 + np.exp(-k * (x - x_0)))
 
 if __name__ == "__main__":
     Ampofo = Ampofo()
